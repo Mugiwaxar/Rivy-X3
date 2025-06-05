@@ -116,3 +116,53 @@ public class ChunkSManager : MonoBehaviour
     }
 
 }
+
+[UpdateInGroup(typeof(SimulationSystemGroup))]
+public partial struct LoadChunksAroundCamera : ISystem
+{
+    public int loadRadius;
+
+    public void OnCreate(ref SystemState state)
+    {
+        loadRadius = 1;
+    }
+
+    public void OnUpdate(ref SystemState state)
+    {
+        Camera cam = Camera.main;
+        if (cam == null) return;
+
+        VoxelSettings settings = SystemAPI.GetSingleton<VoxelSettings>();
+        int chunkSize = settings.chunkSize;
+
+        float3 camPos = cam.transform.position;
+        int3 camChunk = new int3(
+            (int)math.floor(camPos.x / chunkSize),
+            (int)math.floor(camPos.y / chunkSize),
+            (int)math.floor(camPos.z / chunkSize));
+
+        var chunksMap = VoxelWorld._ChunkManager.chunksMap;
+
+        for (int dx = -loadRadius; dx <= loadRadius; dx++)
+        {
+            for (int dy = -loadRadius; dy <= loadRadius; dy++)
+            {
+                for (int dz = -loadRadius; dz <= loadRadius; dz++)
+                {
+                    int3 pos = camChunk + new int3(dx, dy, dz);
+
+                    if (pos.x < 0 || pos.y < 0 || pos.z < 0 ||
+                        pos.x >= settings.worldSizeInChunks ||
+                        pos.y >= settings.worldHeightInChunks ||
+                        pos.z >= settings.worldSizeInChunks)
+                        continue;
+
+                    if (!chunksMap.ContainsKey(pos))
+                    {
+                        chunksMap.TryAdd(pos, ChunksGenerator.CreateChunk(ref state, pos, chunkSize));
+                    }
+                }
+            }
+        }
+    }
+}
