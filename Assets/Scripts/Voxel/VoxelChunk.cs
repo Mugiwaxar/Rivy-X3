@@ -189,7 +189,7 @@ public partial struct BuildMesh : ISystem
         state.EntityManager.SetComponentData(entity, mmi);
 
         // Send back the mesh to the mesh pool //
-        MeshPool.ReleaseMesh(mesh);
+        // MeshPool.ReleaseMesh(mesh);
 
     }
 
