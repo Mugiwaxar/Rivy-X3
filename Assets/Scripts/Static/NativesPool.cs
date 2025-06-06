@@ -1,9 +1,25 @@
 using Assets.Scripts.Block;
 using System.Collections.Generic;
+using System.Text;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
+
+public static class NativePoolsManager
+{
+    public static void DisposeAll()
+    {
+        NativesPool<int3>.DisposeAll();
+        NativesPool<byte>.DisposeAll();
+        NativesPool<BlockRender>.DisposeAll();
+        NativesPool<SquareFace>.DisposeAll();
+        NativesPool<float3>.DisposeAll();
+        NativesPool<int>.DisposeAll();
+        NativesPool<float2>.DisposeAll();
+    }
+}
 
 public static class NativesPool<T> where T : unmanaged
 {
@@ -17,6 +33,7 @@ public static class NativesPool<T> where T : unmanaged
 
     public static NativeArray<T> GetArray(int length)
     {
+        length = Mathf.NextPowerOfTwo(length);
         lock (Locker)
         {
             if (ArrayPool.TryGetValue(length, out var stack) && stack.Count > 0)
@@ -30,6 +47,7 @@ public static class NativesPool<T> where T : unmanaged
 
     public static NativeList<T> GetList(int length)
     {
+        length = Mathf.NextPowerOfTwo(length);
         lock (Locker)
         {
             if (ListPool.TryGetValue(length, out var stack) && stack.Count > 0)
@@ -102,6 +120,26 @@ public static class NativesPool<T> where T : unmanaged
 
         ArrayPool.Clear();
         ListPool.Clear();
+    }
+
+    public static string GetStats()
+    {
+
+        int arrayPoolCount = 0;
+        int listPoolCount = 0;
+
+        foreach (var kvp in ArrayPool)
+        {
+            arrayPoolCount += kvp.Value.Count;
+        }
+
+        foreach (var kvp in ListPool)
+        {
+            listPoolCount += kvp.Value.Count;
+        }
+
+        return $"For type: {typeof(T)} Array count: {arrayPoolCount} ({ArrayPool.Count}), List count: {listPoolCount} ({ListPool.Count})";
+
     }
 
     [BurstCompile]

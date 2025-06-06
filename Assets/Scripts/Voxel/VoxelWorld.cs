@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
 using System.Collections;
@@ -9,6 +9,10 @@ using Unity.Entities;
 using Unity.Collections;
 
 using Unity.Mathematics;
+using Unity.Burst;
+using System.Threading.Tasks;
+
+
 
 
 
@@ -21,7 +25,7 @@ using static UnityEditor.PlayerSettings;
 public class VoxelWorld : MonoBehaviour
 {
 
-    [NonSerialized] public static VoxelWorld _Instance;
+    public static VoxelWorld _Instance;
     public static ChunkSManager _ChunkManager
     {
         get { return _Instance.ChunkSManager; }
@@ -34,16 +38,21 @@ public class VoxelWorld : MonoBehaviour
         }
     }
 
-    public Material material;
+    [SerializeField] public Material[] Materials;
+    [NonSerialized] public Mesh[] Meshs;
     public Texture2D atlasTexture;
 
     public byte worldSizeInChunks = 4;
     public byte worldHeightInChunks = 8;
+
+    public byte viewDistance = 10;
+    public byte yWiewDistance = 3;
     public int worldTotalSizeInChunks
     {
         get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; }
     }
-    public byte chunkSize = 16;
+    public int chunkSize = 16;
+    public byte chunkInitListSize = 5;
 
     public bool doFloodFill = true;
     public bool doLinearFloodFill = true;
@@ -51,16 +60,27 @@ public class VoxelWorld : MonoBehaviour
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
 
+    [NonSerialized] public bool requestWorldInit = true;
+
     [NonSerialized] public ChunkSManager ChunkSManager;
 
-
+    public sealed class DeferredBootstrap : ICustomBootstrap
+    {
+        public bool Initialize(string defaultWorldName)
+        {
+            // Create the world //
+            var world = new World("World");
+            World.DefaultGameObjectInjectionWorld = world;
+            return true;
+        }
+    }
 
     public void ResetWorld()
     {
-        this.ChunkSManager.GenerateAllChunks();
+        this.requestWorldInit = true;
     }
 
-    private void Start()
+    async void Start()
     {
 
         // Save the instance //
@@ -70,51 +90,57 @@ public class VoxelWorld : MonoBehaviour
         GameObject cm = new GameObject("ChunkManager");
         cm.transform.SetParent(this.transform, false);
         this.ChunkSManager = cm.AddComponent<ChunkSManager>();
-        this.ChunkSManager.world = this;
 
-        // Create all chunks //
-        this.ChunkSManager.GenerateAllChunks();
+        // Start the world //
+        World world = World.DefaultGameObjectInjectionWorld;
+        var allSystems = DefaultWorldInitialization.GetAllSystems(WorldSystemFilterFlags.Default);
 
-        // Set the chunks settings //
-        EntityManager entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-        Entity entity = entityManager.CreateEntity();
-        entityManager.AddComponentData(entity, new VoxelSettings
-        {
-            chunkSize = chunkSize,
-            worldSizeInChunks = worldSizeInChunks,
-            worldHeightInChunks = worldHeightInChunks,
-            doFloodFill = doFloodFill,
-            doLinearFloodFill = doLinearFloodFill,
-            doFacesOcclusion = doFacesOcclusion,
-            doGreedyMeshing = doGreedyMeshing,
-            doFaceNormalCheck = doFaceNormalCheck
-        });
+        // Init all systems //
+        DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups(world, allSystems);
+
+        // Disable the chunks group //
+        ChunkPipelineGroup chunkGroup = world.GetExistingSystemManaged<ChunkPipelineGroup>();
+        chunkGroup.Enabled = false;
+
+        // Start all systems except the chunks group //
+        ScriptBehaviourUpdateOrder.AppendWorldToCurrentPlayerLoop(world);
+
+        // Wait //
+        await Task.Yield();
+
+        // Start the chunks group //
+        chunkGroup.Enabled = true;
 
     }
 
-    void OnEnable()
+    private void OnDestroy()
     {
-        RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+        NativePoolsManager.DisposeAll();
     }
 
-    void OnDisable()
-    {
-        RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-    }
+    //void OnEnable()
+    //{
+    //    RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+    //}
 
-    void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
-    {
-        if (this.ChunkSManager.chunksList == null) return;
+    //void OnDisable()
+    //{
+    //    RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+    //}
 
-        foreach (KeyValuePair<Vector3Int, VoxelChunk> kvp in this.ChunkSManager.chunksList)
-        {
-            VoxelChunk chunk = kvp.Value;
-            if (chunk.chunkReady && chunk.mesh != null && chunk.material != null)
-            {
-                Graphics.DrawMesh(chunk.mesh, chunk.chunkMatrix, chunk.material, 0, camera);
-            }
-        }
-    }
+    //void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
+    //{
+    //    if (this.ChunkSManager.chunksList == null) return;
+
+    //    foreach (KeyValuePair<Vector3Int, VoxelChunk> kvp in this.ChunkSManager.chunksList)
+    //    {
+    //        VoxelChunk chunk = kvp.Value;
+    //        if (chunk.chunkReady && chunk.mesh != null && chunk.material != null)
+    //        {
+    //            Graphics.DrawMesh(chunk.mesh, chunk.chunkMatrix, chunk.material, 0, camera);
+    //        }
+    //    }
+    //}
 
 
 }
