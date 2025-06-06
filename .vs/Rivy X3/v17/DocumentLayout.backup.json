@@ -1,28 +1,7 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\User\\Bureau\\Rivy X3\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\voxel\\chunksgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\voxel\\chunksgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|C:\\Users\\User\\Bureau\\Rivy X3\\assets\\scripts\\voxel\\voxelchunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\voxel\\voxelchunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\voxel\\chunksmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\voxel\\chunksmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\voxel\\voxelworld.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\voxel\\voxelworld.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\static\\nativespool.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\static\\nativespool.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -30,76 +9,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "NativesPool.cs",
-              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Static\\NativesPool.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Static\\NativesPool.cs",
-              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Static\\NativesPool.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Static\\NativesPool.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAmAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T22:25:06.79Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "VoxelWorld.cs",
-              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\VoxelWorld.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Voxel\\VoxelWorld.cs",
-              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\VoxelWorld.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Voxel\\VoxelWorld.cs",
-              "ViewState": "AgIAAFQAAAAAAAAAAAAIwGwAAAAIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T22:10:42.046Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ChunksManager.cs",
-              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\ChunksManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Voxel\\ChunksManager.cs",
-              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\ChunksManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Voxel\\ChunksManager.cs",
-              "ViewState": "AgIAAE8AAAAAAAAAAAASwFoAAAAZAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T22:10:54.077Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "VoxelChunk.cs",
-              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\VoxelChunk.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Voxel\\VoxelChunk.cs",
-              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\VoxelChunk.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Voxel\\VoxelChunk.cs",
-              "ViewState": "AgIAAKcAAAAAAAAAAAAgwIsAAABIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-29T16:59:26.649Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ChunksGenerator.cs",
-              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
-              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
-              "ViewState": "AgIAABIAAAAAAAAAAAAAwBwAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-31T22:12:51.726Z",
-              "EditorCaption": ""
             }
           ]
         }

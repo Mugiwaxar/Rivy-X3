@@ -8,7 +8,7 @@ public enum VoxelFlags : byte
 {
     None = 0,
     Transparent = 1 << 0,
-    NonSolide = 2 << 0
+    NonSolid = 2 << 0
 }
 
 public struct BlockData : IBufferElementData

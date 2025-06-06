@@ -49,7 +49,7 @@ static public partial class ChunksGenerator
         // Check the blocks buffer //
         DynamicBuffer<BlockData> blocks = entityManager.AddBuffer<BlockData>(chunk);
 
-        // Check the blocks buffer lengh //
+        // Check the blocks buffer length //
         int total = chunkSize * chunkSize * chunkSize;
         if (blocks.Length < total)
             blocks.ResizeUninitialized(total);
@@ -315,8 +315,8 @@ static public partial class ChunksGenerator
             for (int i = 0; i < this.squareList.Length; i++)
             {
                 SquareFace square = this.squareList[i];
-                square.getSquare(ref this.verticesList);
-                square.getTriangles(i * 4, ref this.trianglesList);
+                square.GetSquare(ref this.verticesList);
+                square.GetTriangles(i * 4, ref this.trianglesList);
                 square.GetUVs(ref this.uvsList, this.atlas);
             }
 

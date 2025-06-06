@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using static BuildMesh;
 using static ChunksGenerator;
 
 public struct ChunkPosition : IComponentData {public int3 Value;}
@@ -18,7 +19,6 @@ public partial struct BuildMesh : ISystem
 
     private NativeQueue<Entity> chunkToBuildQueue;
     private NativeList<ChunkData> chunkJobList;
-    private JobHandle buildChunkJob;
     private bool initDone;
     BatchMaterialID matID;
 
@@ -46,7 +46,15 @@ public partial struct BuildMesh : ISystem
         if (this.chunkToBuildQueue.IsCreated)
             this.chunkToBuildQueue.Dispose();
         if (this.chunkJobList.IsCreated)
+        {
+            for (int i = this.chunkJobList.Length - 1; i >= 0; i--)
+            {
+                ChunkData chunkData = this.chunkJobList[i];
+                chunkData.job.Complete();
+                this.disposeAllNatives(chunkData);
+            }
             this.chunkJobList.Dispose();
+        }
     }
 
     public void OnUpdate(ref SystemState state)
@@ -84,16 +92,9 @@ public partial struct BuildMesh : ISystem
 
                 // Build the mesh //
                 this.generateMesh(ref state, chunkData.chunk, chunkData.verticesList, chunkData.trianglesList, chunkData.uvsList);
-                // Dispose all tables //
-                NativesPool<int3>.ReleaseList(chunkData.frontier);
-                NativesPool<byte>.ReleaseArray(chunkData.floodVisited);
-                NativesPool<byte>.ReleaseArray(chunkData.linearFloodVisited);
-                NativesPool<BlockRender>.ReleaseArray(chunkData.blockRenders);
-                NativesPool<SquareFace>.ReleaseList(chunkData.squareList);
 
-                NativesPool<float3>.ReleaseList(chunkData.verticesList);
-                NativesPool<int>.ReleaseList(chunkData.trianglesList);
-                NativesPool<float2>.ReleaseList(chunkData.uvsList);
+                // Dispose all natives //
+                this.disposeAllNatives(chunkData);
 
                 // Remove the chunkData //
                 this.chunkJobList.RemoveAtSwapBack(i);
@@ -168,8 +169,12 @@ public partial struct BuildMesh : ISystem
     private void generateMesh(ref SystemState state, Entity entity, NativeList<float3> verticesList, NativeList<int> trianglesList, NativeList<float2> uvsList)
     {
 
-        // Generate the mesh //
-        Mesh mesh = new Mesh { name = "Chunk", indexFormat = IndexFormat.UInt32 };
+        // Get a mesh from the mesh pool //
+        Mesh mesh = MeshPool.GetMesh();
+
+        // Set the mesh //
+        //Mesh mesh = new Mesh { name = "Chunk", indexFormat = IndexFormat.UInt32 };
+        mesh.name = "Chunk";
         mesh.SetVertices(verticesList.AsArray());
         mesh.SetIndices(trianglesList.AsArray(), MeshTopology.Triangles, 0);
         mesh.SetUVs(0, uvsList.AsArray());
@@ -182,6 +187,25 @@ public partial struct BuildMesh : ISystem
         BatchMeshID meshID = gfxSys.RegisterMesh(mesh);
         var mmi = new MaterialMeshInfo { MeshID = meshID, MaterialID = this.matID };
         state.EntityManager.SetComponentData(entity, mmi);
+
+        // Send back the mesh to the mesh pool //
+        MeshPool.ReleaseMesh(mesh);
+
+    }
+
+    private void disposeAllNatives(ChunkData chunkData)
+    {
+
+        // Dispose all tables //
+        NativesPool<int3>.ReleaseList(chunkData.frontier);
+        NativesPool<byte>.ReleaseArray(chunkData.floodVisited);
+        NativesPool<byte>.ReleaseArray(chunkData.linearFloodVisited);
+        NativesPool<BlockRender>.ReleaseArray(chunkData.blockRenders);
+        NativesPool<SquareFace>.ReleaseList(chunkData.squareList);
+
+        NativesPool<float3>.ReleaseList(chunkData.verticesList);
+        NativesPool<int>.ReleaseList(chunkData.trianglesList);
+        NativesPool<float2>.ReleaseList(chunkData.uvsList);
 
     }
 

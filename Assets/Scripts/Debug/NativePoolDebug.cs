@@ -23,6 +23,7 @@ public class NativePoolDebug : MonoBehaviour
             text += NativesPool<float3>.GetStats() + Environment.NewLine;
             text += NativesPool<int>.GetStats() + Environment.NewLine;
             text += NativesPool<float2>.GetStats() + Environment.NewLine;
+            text += MeshPool.GetStats() + Environment.NewLine;
 
             this.GetComponent<TextMeshProUGUI>().text = text;
         }

@@ -46,7 +46,7 @@ public class VoxelWorld : MonoBehaviour
     public byte worldHeightInChunks = 8;
 
     public byte viewDistance = 10;
-    public byte yWiewDistance = 3;
+    public byte yViewDistance = 3;
     public int worldTotalSizeInChunks
     {
         get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; }

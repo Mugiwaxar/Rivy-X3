@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\Voxel\ChunksGenerator.cs" />
     <Compile Include="Assets\Scripts\Block\BlockRender.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelChunk.cs" />
+    <Compile Include="Assets\Scripts\Static\MeshPool.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunksManager.cs" />
     <Compile Include="Assets\Scripts\Debug\NativePoolDebug.cs" />
     <Compile Include="Assets\Scripts\Static\EnumData.cs" />

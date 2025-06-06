@@ -32,7 +32,7 @@ namespace Assets.Scripts.Block
             this.id = id;
         }
 
-        public void getSquare(ref NativeList<float3> verticesList)
+        public void GetSquare(ref NativeList<float3> verticesList)
         {
             float3 p0, p1, p2, p3;
             switch (this.direction)
@@ -83,7 +83,7 @@ namespace Assets.Scripts.Block
         }
 
 
-        public void getTriangles(int index, ref NativeList<int> trianglesList)
+        public void GetTriangles(int index, ref NativeList<int> trianglesList)
         {
 
             trianglesList.AddNoResize(index + 0);
