@@ -59,6 +59,7 @@ public class VoxelWorld : MonoBehaviour
     public bool doFacesOcclusion = true;
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
+    public bool doVoxelCastOcclusion = true;
 
     [NonSerialized] public bool requestWorldInit = true;
 

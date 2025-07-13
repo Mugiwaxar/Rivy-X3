@@ -77,25 +77,12 @@ public class ChunkSManager : MonoBehaviour
 {
 
     public NativeParallelHashMap<int3, Entity> chunksMap;
-    public Mesh DummyCube;
 
     void Awake()
     {
 
         // Init the Map //
         this.chunksMap = new NativeParallelHashMap<int3, Entity>(VoxelWorld._Instance.worldTotalSizeInChunks, Allocator.Persistent);
-
-        // Create the Dummw Cube //
-        GameObject tempCube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        Mesh unityCube = tempCube.GetComponent<MeshFilter>().sharedMesh;
-        this.DummyCube = GameObject.Instantiate(unityCube);
-        GameObject.DestroyImmediate(tempCube);
-        Vector3[] v = unityCube.vertices;
-        for (int i = 0; i < v.Length; i++) v[i] *= VoxelWorld._Instance.chunkSize;
-        unityCube.vertices = v;
-        unityCube.RecalculateBounds();
-        unityCube.name = $"DummyChunk_{VoxelWorld._Instance.chunkSize}";
-        unityCube.UploadMeshData(false);
 
     }
 

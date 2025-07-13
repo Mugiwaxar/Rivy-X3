@@ -24,27 +24,14 @@ static public partial class ChunksGenerator
 
         // Calcul the chunk transform and bounds //
         float3 worldPos = position * chunkSize;
-        float3 center = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f);
-        float3 extents = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f);
-        AABB bounds = new AABB {Center = center,Extents = extents};
-
-        // Add the render components //
-        EntitiesGraphicsSystem gfx = state.World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
-        BatchMaterialID batchMatID = gfx.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
-        BatchMeshID batchMeshID = gfx.RegisterMesh(VoxelWorld._Instance.ChunkSManager.DummyCube);
-        RenderMeshDescription desc = new RenderMeshDescription(shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows: true);
-        MaterialMeshInfo mmi = new MaterialMeshInfo { MaterialID = batchMatID, MeshID = batchMeshID };
-        RenderMeshUtility.AddComponents(chunk, entityManager, desc, mmi);
 
         // Add the local transform //
         entityManager.AddComponentData(chunk, LocalTransform.FromPosition(worldPos));
 
-        // Set the bounds //
-        entityManager.SetComponentData(chunk, new Unity.Rendering.RenderBounds {Value = bounds});
-
         // Add all enableable Components //
         entityManager.AddComponent<JustCreated>(chunk);
-        entityManager.SetComponentEnabled<JustCreated>(chunk, false);
+        if (VoxelWorld._Instance.doVoxelCastOcclusion == false)
+            entityManager.SetComponentEnabled<JustCreated>(chunk, true);
 
         // Check the blocks buffer //
         DynamicBuffer<BlockData> blocks = entityManager.AddBuffer<BlockData>(chunk);

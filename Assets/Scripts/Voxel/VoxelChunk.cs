@@ -178,7 +178,6 @@ public partial struct BuildMesh : ISystem
         Mesh mesh = MeshPool.GetMesh();
 
         // Set the mesh //
-        //Mesh mesh = new Mesh { name = "Chunk", indexFormat = IndexFormat.UInt32 };
         mesh.name = "Chunk";
         mesh.SetVertices(verticesList.AsArray());
         mesh.SetIndices(trianglesList.AsArray(), MeshTopology.Triangles, 0);
@@ -187,11 +186,20 @@ public partial struct BuildMesh : ISystem
         mesh.RecalculateBounds();
         mesh.UploadMeshData(false);
 
-        // Set the mesh to render //
-        EntitiesGraphicsSystem gfxSys = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
-        BatchMeshID meshID = gfxSys.RegisterMesh(mesh);
-        var mmi = new MaterialMeshInfo { MeshID = meshID, MaterialID = this.matID };
-        state.EntityManager.SetComponentData(entity, mmi);
+        // Add the render components //
+        EntitiesGraphicsSystem gfx = state.World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
+        BatchMaterialID batchMatID = gfx.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
+        BatchMeshID batchMeshID = gfx.RegisterMesh(mesh);
+        RenderMeshDescription desc = new RenderMeshDescription(shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows: true);
+        MaterialMeshInfo mmi = new MaterialMeshInfo { MeshID = batchMeshID, MaterialID = this.matID };
+        RenderMeshUtility.AddComponents(entity, state.EntityManager, desc, mmi);
+
+        // Set the bounds //
+        int chunkSize = VoxelWorld._Instance.chunkSize;
+        float3 center = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f);
+        float3 extents = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f);
+        AABB bounds = new AABB { Center = center, Extents = extents };
+        state.EntityManager.SetComponentData(entity, new Unity.Rendering.RenderBounds { Value = bounds });
 
         // Send back the mesh to the mesh pool //
         // MeshPool.ReleaseMesh(mesh);
@@ -257,14 +265,18 @@ public partial struct UpdateChunksVisibility : ISystem
         // Init all values //
         if (this.init == false)
         {
-            this.rayCount = 10;
-            this.maxDistance = 100;
+            this.rayCount = 1;
+            this.maxDistance = 1000;
             this.chunkSize = VoxelWorld._Instance.chunkSize;
             this.rayCasts = new NativeArray<RayCast>(rayCount, Allocator.Persistent);
             this.chunksHit = new NativeList<ChunkHit>(rayCount, Allocator.Persistent);
             this.init = true;
             this.needNewJob = true;
         }
+
+        // Return if VoxexCast occlusion is disabled //
+        if (VoxelWorld._Instance.doFacesOcclusion == false)
+            return;
 
         // Check the camera //
         if (Camera.main == null)
@@ -276,7 +288,7 @@ public partial struct UpdateChunksVisibility : ISystem
             this.jobHandle.Complete();
             foreach (ChunkHit chunkHit in this.chunksHit)
             {
-                state.EntityManager.SetComponentEnabled<JustCreated>(chunkHit.chunk, true);
+                //state.EntityManager.SetComponentEnabled<JustCreated>(chunkHit.chunk, true);
             }
             this.needNewJob = true;
             return;
@@ -323,6 +335,7 @@ public partial struct UpdateChunksVisibility : ISystem
 
         // Start the job //
         this.jobHandle = job.Schedule(rayCount, 32);
+        this.needNewJob = false;
 
     }
 
