@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Voxel\VoxelWorld.cs" />
+    <Compile Include="Assets\Scripts\Static\VoxelRaycast.cs" />
     <Compile Include="Assets\Scripts\Static\Utils.cs" />
     <Compile Include="Assets\Scripts\Block\SquareFace.cs" />
     <Compile Include="Assets\Scripts\Block\BlockData.cs" />
@@ -241,6 +242,10 @@
     </Reference>
     <Reference Include="UnityEngine.MultiplayerModule">
       <HintPath>C:\Program Files\Unity\Hub\Editor\6000.1.0b15\Editor\Data\Managed\UnityEngine\UnityEngine.MultiplayerModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.NVIDIAModule">
+      <HintPath>C:\Program Files\Unity\Hub\Editor\6000.1.0b15\Editor\Data\Managed\UnityEngine\UnityEngine.NVIDIAModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">

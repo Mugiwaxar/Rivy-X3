@@ -1,13 +1,18 @@
 ﻿using Assets.Scripts.Block;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
+using UnityEngine.LightTransport;
 using UnityEngine.Rendering;
 using static BuildMesh;
 using static ChunksGenerator;
+using static Unity.Collections.AllocatorManager;
+using static UnityEngine.Rendering.VirtualTexturing.Debugging;
+using static VoxelRaycast;
 
 public struct ChunkPosition : IComponentData {public int3 Value;}
 public struct JustCreated : IComponentData, IEnableableComponent { }
@@ -206,6 +211,118 @@ public partial struct BuildMesh : ISystem
         NativesPool<float3>.ReleaseList(chunkData.verticesList);
         NativesPool<int>.ReleaseList(chunkData.trianglesList);
         NativesPool<float2>.ReleaseList(chunkData.uvsList);
+
+    }
+
+}
+
+[UpdateInGroup(typeof(ChunkPipelineGroup))]
+[UpdateAfter(typeof(BuildMesh))]
+public partial struct UpdateChunksVisibility : ISystem
+{
+
+    public bool init;
+    public bool needNewJob;
+    public byte rayCount;
+    public int maxDistance;
+    public int chunkSize;
+    public JobHandle jobHandle;
+    public NativeArray<RayCast> rayCasts;
+    public NativeList<ChunkHit> chunksHit;
+
+    public struct RayCast
+    {
+        public float3 origin;
+        public float3 direction;
+        public float distance;
+    }
+
+    public struct ChunkHit
+    {
+        public Entity chunk;
+        public int3 position;
+        public int3 hitNormal;
+    }
+
+    public void OnDestroy(ref SystemState state)
+    {
+        this.jobHandle.Complete();
+        this.rayCasts.Dispose();
+        this.chunksHit.Dispose();
+    }
+
+    public void OnUpdate(ref SystemState state)
+    {
+
+        // Init all values //
+        if (this.init == false)
+        {
+            this.rayCount = 10;
+            this.maxDistance = 100;
+            this.chunkSize = VoxelWorld._Instance.chunkSize;
+            this.rayCasts = new NativeArray<RayCast>(rayCount, Allocator.Persistent);
+            this.chunksHit = new NativeList<ChunkHit>(rayCount, Allocator.Persistent);
+            this.init = true;
+            this.needNewJob = true;
+        }
+
+        // Check the camera //
+        if (Camera.main == null)
+            return;
+
+        // Check if the job is completed //
+        if (this.jobHandle.IsCompleted == true)
+        {
+            this.jobHandle.Complete();
+            foreach (ChunkHit chunkHit in this.chunksHit)
+            {
+                state.EntityManager.SetComponentEnabled<JustCreated>(chunkHit.chunk, true);
+            }
+            this.needNewJob = true;
+            return;
+        }
+
+        // Check if a new job is needed //
+        if (this.needNewJob == false)
+            return;
+
+        // Get random raycast //
+        for (int i = 0; i < rayCount; i++)
+        {
+
+            Vector3 screenPoint = new Vector3(
+                UnityEngine.Random.Range(0.0f, 1.0f),
+                UnityEngine.Random.Range(0.0f, 1.0f),
+                0f
+            );
+
+            Ray ray = Camera.main.ViewportPointToRay(screenPoint);
+
+            RayCast rayCast = new RayCast();
+            rayCast.origin = ray.origin;
+            rayCast.direction = math.normalize((float3)ray.direction);
+            rayCast.distance = maxDistance;
+            this.rayCasts[i] = rayCast;
+
+        }
+
+        // Clear the chunks hit list //
+        this.chunksHit.Clear();
+
+        // Set the job //
+        RaycastJobParallel job = new RaycastJobParallel
+        {
+            rayCasts = this.rayCasts,
+            chunksHit = this.chunksHit.AsParallelWriter(),
+
+            ChunkMap = VoxelWorld._Instance.ChunkSManager.chunksMap,
+            BlocksLookup = SystemAPI.GetBufferLookup<BlockData>(true),
+            ChunkSize = chunkSize,
+
+        };
+
+        // Start the job //
+        this.jobHandle = job.Schedule(rayCount, 32);
 
     }
 

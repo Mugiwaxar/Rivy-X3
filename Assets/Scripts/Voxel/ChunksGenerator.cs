@@ -44,7 +44,7 @@ static public partial class ChunksGenerator
 
         // Add all enableable Components //
         entityManager.AddComponent<JustCreated>(chunk);
-        entityManager.SetComponentEnabled<JustCreated>(chunk, true);
+        entityManager.SetComponentEnabled<JustCreated>(chunk, false);
 
         // Check the blocks buffer //
         DynamicBuffer<BlockData> blocks = entityManager.AddBuffer<BlockData>(chunk);
