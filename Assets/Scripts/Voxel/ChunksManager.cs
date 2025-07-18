@@ -2,6 +2,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
+using Unity.VisualScripting;
 using UnityEngine;
 using static BuildMesh;
 using static EnumData;
@@ -56,14 +57,6 @@ public partial struct InitChunks : ISystem
         byte worldHeightInChunks = world.worldHeightInChunks;
         int chunkSize = world.chunkSize;
 
-        // Destroy the old voxel chunk singleton if exist //
-        if (SystemAPI.HasSingleton<VoxelChunkSingleton>())
-        {
-            Entity vcsOldEntity = SystemAPI.GetSingletonEntity<VoxelChunkSingleton>();
-            Utils.DestroyVoxelChunkSingleton(SystemAPI.GetSingleton<VoxelChunkSingleton>());
-            state.EntityManager.DestroyEntity(vcsOldEntity);
-        }
-
         // Create the voxel chunk singleton //
         Entity vcsEntity = state.EntityManager.CreateEntity();
         EntitiesGraphicsSystem gfxSys = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
@@ -73,13 +66,6 @@ public partial struct InitChunks : ISystem
             chunkJobList = new NativeList<ChunkData>(Allocator.Persistent),
             matID = gfxSys.RegisterMaterial(VoxelWorld._Instance.Materials[0])
         });
-
-        // Destroy the old settings singleton //
-        if (SystemAPI.HasSingleton<VoxelManagerSettings>())
-        {
-            Entity vmsOldEntity = SystemAPI.GetSingletonEntity<VoxelManagerSettings>();
-            state.EntityManager.DestroyEntity(vmsOldEntity);
-        }
 
         // Create the settings singleton //
         Entity vmsEntity = state.EntityManager.CreateEntity();
@@ -101,22 +87,8 @@ public partial struct InitChunks : ISystem
             doVoxelCastOcclusion = world.doVoxelCastOcclusion
         });
 
-        // Kill all pools //
-        NativePoolsManager.DisposeAll();
-        MeshPoolManager.DisposeAll();
-
         // Get the chunks map //
         NativeParallelHashMap<int3, Entity> chunksMap = VoxelWorld._ChunkManager.chunksMap;
-        chunksMap.Clear();
-
-        // Destroy all previous chunks //
-        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
-        foreach ((RefRO<ChunkPosition> pos, Entity entity) in SystemAPI.Query<RefRO<ChunkPosition>>().WithEntityAccess())
-        {
-            ecb.DestroyEntity(entity);
-        }
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
 
         // Create all chunks //
         for (int x = 0; x < worldSizeInChunks; x++)
@@ -134,6 +106,43 @@ public partial struct InitChunks : ISystem
 
         // Set the initialization as done //
         VoxelWorld._Instance.requestWorldInit = false;
+
+    }
+
+    public void OnDestroy(ref SystemState state)
+    {
+
+        // Destroy the old voxel chunk singleton if exist //
+        if (SystemAPI.HasSingleton<VoxelChunkSingleton>())
+        {
+            Entity vcsOldEntity = SystemAPI.GetSingletonEntity<VoxelChunkSingleton>();
+            Utils.DestroyVoxelChunkSingleton(SystemAPI.GetSingleton<VoxelChunkSingleton>());
+            state.EntityManager.DestroyEntity(vcsOldEntity);
+        }
+
+        // Destroy the old settings singleton //
+        if (SystemAPI.HasSingleton<VoxelManagerSettings>())
+        {
+            Entity vmsOldEntity = SystemAPI.GetSingletonEntity<VoxelManagerSettings>();
+            state.EntityManager.DestroyEntity(vmsOldEntity);
+        }
+
+        // Kill all pools //
+        NativePoolsManager.DisposeAll();
+        MeshPoolManager.DisposeAll();
+
+        // Destroy all previous chunks //
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
+        foreach ((RefRO<ChunkPosition> pos, Entity entity) in SystemAPI.Query<RefRO<ChunkPosition>>().WithEntityAccess())
+        {
+            ecb.DestroyEntity(entity);
+        }
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
+
+        // Clear the chunks map //
+        NativeParallelHashMap<int3, Entity> chunksMap = VoxelWorld._ChunkManager.chunksMap;
+        chunksMap.Clear();
 
     }
 

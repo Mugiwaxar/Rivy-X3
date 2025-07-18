@@ -6,6 +6,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.LightTransport;
 using UnityEngine.Rendering;
 using static BuildMesh;
@@ -176,7 +177,9 @@ public partial struct BuildMesh : ISystem
     {
 
         // Get a mesh from the mesh pool //
-        Mesh mesh = MeshPoolManager.GetMesh();
+        //Mesh mesh = MeshPoolManager.GetMesh();
+        Mesh mesh = new Mesh { indexFormat = IndexFormat.UInt32 };
+        mesh.MarkDynamic();
 
         // Set the mesh //
         mesh.name = "Chunk";
@@ -189,7 +192,7 @@ public partial struct BuildMesh : ISystem
 
         // Add the render components //
         EntitiesGraphicsSystem gfx = state.World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
-        BatchMaterialID batchMatID = gfx.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
+        //BatchMaterialID batchMatID = gfx.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
         BatchMeshID batchMeshID = gfx.RegisterMesh(mesh);
         RenderMeshDescription desc = new RenderMeshDescription(shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows: true);
         MaterialMeshInfo mmi = new MaterialMeshInfo { MeshID = batchMeshID, MaterialID = vcs.matID };

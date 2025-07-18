@@ -11,6 +11,8 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Burst;
 using System.Threading.Tasks;
+using Unity.Rendering;
+
 
 
 
@@ -77,22 +79,37 @@ public class VoxelWorld : MonoBehaviour
 
     public void ResetWorld()
     {
-        this.requestWorldInit = true;
+        this.InitWorld();
     }
 
-    async void Start()
+    void Start()
+    {
+        this.InitWorld();
+    }
+
+    async void InitWorld()
     {
 
         // Save the instance //
         _Instance = this;
 
         // Create the chunks manager //
+        if (this.ChunkSManager != null)
+            GameObject.DestroyImmediate(this.ChunkSManager.gameObject);
         GameObject cm = new GameObject("ChunkManager");
         cm.transform.SetParent(this.transform, false);
         this.ChunkSManager = cm.AddComponent<ChunkSManager>();
 
+        // Destroy the old world if exist //
+        World.DefaultGameObjectInjectionWorld.Dispose();
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        // Create the new world //
+        World world = new World("VoxelWorld");
+        World.DefaultGameObjectInjectionWorld = world;
+
         // Start the world //
-        World world = World.DefaultGameObjectInjectionWorld;
         var allSystems = DefaultWorldInitialization.GetAllSystems(WorldSystemFilterFlags.Default);
 
         // Init all systems //
@@ -110,6 +127,7 @@ public class VoxelWorld : MonoBehaviour
 
         // Start the chunks group //
         chunkGroup.Enabled = true;
+        this.requestWorldInit = true;
 
     }
 
