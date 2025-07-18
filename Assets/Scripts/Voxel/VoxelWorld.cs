@@ -39,7 +39,6 @@ public class VoxelWorld : MonoBehaviour
     }
 
     [SerializeField] public Material[] Materials;
-    [NonSerialized] public Mesh[] Meshs;
     public Texture2D atlasTexture;
 
     public byte worldSizeInChunks = 4;
@@ -59,7 +58,7 @@ public class VoxelWorld : MonoBehaviour
     public bool doFacesOcclusion = true;
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
-    public bool doVoxelCastOcclusion = true;
+    public bool doVoxelCastOcclusion = false;
 
     [NonSerialized] public bool requestWorldInit = true;
 

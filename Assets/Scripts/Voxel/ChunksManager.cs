@@ -11,6 +11,34 @@ using static UnityEngine.EventSystems.EventTrigger;
 [WorldSystemFilter(WorldSystemFilterFlags.Default)]
 public partial class ChunkPipelineGroup : ComponentSystemGroup { }
 
+public struct VoxelManagerSettings : IComponentData
+{
+
+    public byte worldSizeInChunks;
+    public byte worldHeightInChunks;
+
+    public byte viewDistance;
+    public byte yViewDistance;
+    public int worldTotalSizeInChunks
+    {
+        get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; }
+    }
+    public int chunkSize;
+    public int totalBlocks
+    {
+        get { return this.chunkSize * this.chunkSize * this.chunkSize;  }
+    }
+    public byte chunkInitListSize;
+
+    public bool doFloodFill;
+    public bool doLinearFloodFill;
+    public bool doFacesOcclusion;
+    public bool doGreedyMeshing;
+    public bool doFaceNormalCheck;
+    public bool doVoxelCastOcclusion;
+
+}
+
 [UpdateInGroup(typeof(ChunkPipelineGroup))]
 public partial struct InitChunks : ISystem
 {
@@ -46,6 +74,33 @@ public partial struct InitChunks : ISystem
             matID = gfxSys.RegisterMaterial(VoxelWorld._Instance.Materials[0])
         });
 
+        // Destroy the old settings singleton //
+        if (SystemAPI.HasSingleton<VoxelManagerSettings>())
+        {
+            Entity vmsOldEntity = SystemAPI.GetSingletonEntity<VoxelManagerSettings>();
+            state.EntityManager.DestroyEntity(vmsOldEntity);
+        }
+
+        // Create the settings singleton //
+        Entity vmsEntity = state.EntityManager.CreateEntity();
+        state.EntityManager.AddComponentData(vmsEntity, new VoxelManagerSettings
+        {
+            worldSizeInChunks = worldSizeInChunks,
+            worldHeightInChunks = worldHeightInChunks,
+
+            viewDistance = world.viewDistance,
+            yViewDistance = world.yViewDistance,
+            chunkSize = chunkSize,
+            chunkInitListSize = world.chunkInitListSize,
+
+            doFloodFill = world.doFloodFill,
+            doLinearFloodFill = world.doLinearFloodFill,
+            doFacesOcclusion = world.doFacesOcclusion,
+            doGreedyMeshing = world.doGreedyMeshing,
+            doFaceNormalCheck = world.doFaceNormalCheck,
+            doVoxelCastOcclusion = world.doVoxelCastOcclusion
+        });
+
         // Kill all pools //
         NativePoolsManager.DisposeAll();
         MeshPoolManager.DisposeAll();
@@ -79,7 +134,6 @@ public partial struct InitChunks : ISystem
 
         // Set the initialization as done //
         VoxelWorld._Instance.requestWorldInit = false;
-
 
     }
 

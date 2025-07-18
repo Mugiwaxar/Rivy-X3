@@ -65,8 +65,15 @@ public partial struct BuildMesh : ISystem
     public void OnUpdate(ref SystemState state)
     {
 
-        // Get the voxel chunk singleton //
+        // Check and get the voxel chunk singleton //
+        if (SystemAPI.HasSingleton<VoxelChunkSingleton>() == false)
+            return;
         VoxelChunkSingleton vcs = SystemAPI.GetSingleton<VoxelChunkSingleton>();
+
+        // Check and get the voxel manager settings singleton //
+        if (SystemAPI.HasSingleton<VoxelManagerSettings>() == false)
+            return;
+        VoxelManagerSettings vms = SystemAPI.GetSingleton<VoxelManagerSettings>();
 
         // Get all chunks that must be updated //
         foreach ((RefRO<JustCreated> _, Entity entity) in SystemAPI.Query<RefRO<JustCreated>>().WithEntityAccess())
@@ -85,10 +92,10 @@ public partial struct BuildMesh : ISystem
             //if (chunkData.job.IsCompleted == true)
             //{
 
-                // Complete the job //
-                chunkData.job.Complete();
+            // Complete the job //
+            chunkData.job.Complete();
 
-           //}
+            //}
 
         }
 
@@ -110,13 +117,9 @@ public partial struct BuildMesh : ISystem
 
         }
 
-        // Get the parameters //
-        VoxelWorld world = VoxelWorld._Instance;
-        int chunkSize = world.chunkSize;
-        int totalBlock = chunkSize * chunkSize * chunkSize;
-
-        // Add job //
-        while (vcs.chunkToBuildQueue.Count > 0 && vcs.chunkJobList.Length <= VoxelWorld._Instance.chunkInitListSize)
+        // Add jobs //
+        int totalBlock = vms.totalBlocks;
+        while (vcs.chunkToBuildQueue.Count > 0 && vcs.chunkJobList.Length <= vms.chunkInitListSize)
         {
 
             // Create the chunk data //
@@ -129,28 +132,23 @@ public partial struct BuildMesh : ISystem
             chunkData.floodVisited = NativesPool<byte>.GetArray(totalBlock);
             chunkData.linearFloodVisited = NativesPool<byte>.GetArray(totalBlock);
             chunkData.blockRenders = NativesPool<BlockRender>.GetArray(totalBlock);
-            chunkData.squareList = NativesPool<SquareFace>.GetList(totalBlock*3);
+            chunkData.squareList = NativesPool<SquareFace>.GetList(totalBlock * 3);
 
-            chunkData.verticesList = NativesPool<float3>.GetList(totalBlock*6*4);
-            chunkData.trianglesList = NativesPool<int>.GetList(totalBlock*6*6);
-            chunkData.uvsList = NativesPool<float2>.GetList(totalBlock*6*4);
+            chunkData.verticesList = NativesPool<float3>.GetList(totalBlock * 6 * 4);
+            chunkData.trianglesList = NativesPool<int>.GetList(totalBlock * 6 * 6);
+            chunkData.uvsList = NativesPool<float2>.GetList(totalBlock * 6 * 4);
 
             // Create the job //
+            int chunkSize = vms.chunkSize;
             chunkData.job = new GenerateChunksGraphics
             {
 
-                chunkSize = chunkSize,
-                totalBlocks = totalBlock,
-                doFloodFill = world.doFloodFill,
-                doLinearFloodFill = world.doLinearFloodFill,
-                doFacesOcclusion = world.doFacesOcclusion,
-                doGreedyMeshing = world.doGreedyMeshing,
-                doFaceNormalCheck = world.doFaceNormalCheck,
+                vms = vms,
 
                 pos = state.EntityManager.GetComponentData<ChunkPosition>(chunkData.chunk).Value,
                 chunkCenter = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f),
                 cameraPosition = Camera.main.transform.position,
-                chunkMap = world.ChunkSManager.chunksMap,
+                chunkMap = VoxelWorld._ChunkManager.chunksMap,
                 blocksLookup = SystemAPI.GetBufferLookup<BlockData>(true),
                 atlas = VoxelWorld._Instance._Atlas,
 
@@ -262,7 +260,7 @@ public partial struct UpdateChunksVisibility : ISystem
         }
 
         // Return if VoxexCast occlusion is disabled //
-        if (VoxelWorld._Instance.doFacesOcclusion == false)
+        if (VoxelWorld._Instance.doVoxelCastOcclusion == false)
             return;
 
         // Check the camera //
