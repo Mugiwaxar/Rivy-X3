@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public static class MeshPool
+public static class MeshPoolManager
 {
     private static readonly Stack<Mesh> Pool = new();
     private static readonly object Locker = new();

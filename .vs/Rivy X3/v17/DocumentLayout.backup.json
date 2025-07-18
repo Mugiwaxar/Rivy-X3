@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\User\\Bureau\\Rivy X3\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\voxel\\voxelchunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\voxel\\voxelchunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\voxel\\chunksgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\voxel\\chunksgenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|c:\\users\\user\\bureau\\rivy x3\\assets\\scripts\\static\\voxelraycast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{9797B8E5-B8D2-1937-CF31-A05D266A8FFE}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\static\\voxelraycast.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
@@ -23,12 +31,38 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "VoxelChunk.cs",
+              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\VoxelChunk.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Voxel\\VoxelChunk.cs",
+              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\VoxelChunk.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Voxel\\VoxelChunk.cs",
+              "ViewState": "AgIAAB8BAAAAAAAAAAAIwCIBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-01T17:37:09.827Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ChunksGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
+              "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Voxel\\ChunksGenerator.cs",
+              "ViewState": "AgIAABMAAAAAAAAAAAAQwC4AAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-01T17:38:04.907Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "VoxelRaycast.cs",
               "DocumentMoniker": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Static\\VoxelRaycast.cs",
               "RelativeDocumentMoniker": "Assets\\Scripts\\Static\\VoxelRaycast.cs",
               "ToolTip": "C:\\Users\\User\\Bureau\\Rivy X3\\Assets\\Scripts\\Static\\VoxelRaycast.cs",
               "RelativeToolTip": "Assets\\Scripts\\Static\\VoxelRaycast.cs",
-              "ViewState": "AgIAAD0AAAAAAAAAAAAuwGgAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-22T10:32:22.386Z",
               "EditorCaption": ""

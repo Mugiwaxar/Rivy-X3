@@ -1,8 +1,11 @@
 ﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Rendering;
 using UnityEngine;
+using static BuildMesh;
 using static EnumData;
+using static UnityEngine.EventSystems.EventTrigger;
 
 
 [WorldSystemFilter(WorldSystemFilterFlags.Default)]
@@ -25,15 +28,34 @@ public partial struct InitChunks : ISystem
         byte worldHeightInChunks = world.worldHeightInChunks;
         int chunkSize = world.chunkSize;
 
-        // Kill all tables pool //
+        // Destroy the old voxel chunk singleton if exist //
+        if (SystemAPI.HasSingleton<VoxelChunkSingleton>())
+        {
+            Entity vcsOldEntity = SystemAPI.GetSingletonEntity<VoxelChunkSingleton>();
+            Utils.DestroyVoxelChunkSingleton(SystemAPI.GetSingleton<VoxelChunkSingleton>());
+            state.EntityManager.DestroyEntity(vcsOldEntity);
+        }
+
+        // Create the voxel chunk singleton //
+        Entity vcsEntity = state.EntityManager.CreateEntity();
+        EntitiesGraphicsSystem gfxSys = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
+        state.EntityManager.AddComponentData(vcsEntity, new VoxelChunkSingleton
+        {
+            chunkToBuildQueue = new NativeQueue<Entity>(Allocator.Persistent),
+            chunkJobList = new NativeList<ChunkData>(Allocator.Persistent),
+            matID = gfxSys.RegisterMaterial(VoxelWorld._Instance.Materials[0])
+        });
+
+        // Kill all pools //
         NativePoolsManager.DisposeAll();
+        MeshPoolManager.DisposeAll();
 
         // Get the chunks map //
         NativeParallelHashMap<int3, Entity> chunksMap = VoxelWorld._ChunkManager.chunksMap;
         chunksMap.Clear();
 
         // Destroy all previous chunks //
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
         foreach ((RefRO<ChunkPosition> pos, Entity entity) in SystemAPI.Query<RefRO<ChunkPosition>>().WithEntityAccess())
         {
             ecb.DestroyEntity(entity);

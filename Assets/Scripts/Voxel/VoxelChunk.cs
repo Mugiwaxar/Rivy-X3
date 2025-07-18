@@ -17,94 +17,97 @@ using static VoxelRaycast;
 public struct ChunkPosition : IComponentData {public int3 Value;}
 public struct JustCreated : IComponentData, IEnableableComponent { }
 
+public struct VoxelChunkSingleton : IComponentData
+{
+
+    public NativeQueue<Entity> chunkToBuildQueue;
+    public NativeList<ChunkData> chunkJobList;
+    public BatchMaterialID matID;
+
+}
+
+public struct ChunkData
+{
+
+    public Entity chunk;
+    public JobHandle job;
+
+    public NativeList<int3> frontier;
+    public NativeArray<byte> floodVisited;
+    public NativeArray<byte> linearFloodVisited;
+    public NativeArray<BlockRender> blockRenders;
+    public NativeList<SquareFace> squareList;
+
+    public NativeList<float3> verticesList;
+    public NativeList<int> trianglesList;
+    public NativeList<float2> uvsList;
+
+
+}
+
 [UpdateInGroup(typeof(ChunkPipelineGroup))]
 [UpdateAfter(typeof(InitChunks))]
 public partial struct BuildMesh : ISystem
 {
 
-    private NativeQueue<Entity> chunkToBuildQueue;
-    private NativeList<ChunkData> chunkJobList;
-    private bool initDone;
-    BatchMaterialID matID;
-
-    public struct ChunkData
-    {
-
-        public Entity chunk;
-        public JobHandle job;
-
-        public NativeList<int3> frontier;
-        public NativeArray<byte> floodVisited;
-        public NativeArray<byte> linearFloodVisited;
-        public NativeArray<BlockRender> blockRenders;
-        public NativeList<SquareFace> squareList;
-
-        public NativeList<float3> verticesList;
-        public NativeList<int> trianglesList;
-        public NativeList<float2> uvsList;
-
-
-    }
-
     public void OnDestroy(ref SystemState state)
     {
-        if (this.chunkToBuildQueue.IsCreated)
-            this.chunkToBuildQueue.Dispose();
-        if (this.chunkJobList.IsCreated)
+        // Destroy the voxel chunk singleton if exist //
+        Entity vcsEntity = SystemAPI.GetSingletonEntity<VoxelChunkSingleton>();
+        if (state.EntityManager.Exists(vcsEntity))
         {
-            for (int i = this.chunkJobList.Length - 1; i >= 0; i--)
-            {
-                ChunkData chunkData = this.chunkJobList[i];
-                chunkData.job.Complete();
-                this.disposeAllNatives(chunkData);
-            }
-            this.chunkJobList.Dispose();
+            if (SystemAPI.HasSingleton<VoxelChunkSingleton>())
+                Utils.DestroyVoxelChunkSingleton(SystemAPI.GetSingleton<VoxelChunkSingleton>());
+            state.EntityManager.DestroyEntity(vcsEntity);
         }
     }
 
     public void OnUpdate(ref SystemState state)
     {
 
-        // Do the init //
-        if (this.initDone == false)
-        {
-            // Create the queue and the list //
-            this.chunkToBuildQueue = new NativeQueue<Entity>(Allocator.Persistent);
-            this.chunkJobList = new NativeList<ChunkData>(Allocator.Persistent);
-            // Set all chunks matérial //
-            EntitiesGraphicsSystem gfxSys = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
-            this.matID = gfxSys.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
-            // Set the initialization as done //
-            this.initDone = true;
-        }
+        // Get the voxel chunk singleton //
+        VoxelChunkSingleton vcs = SystemAPI.GetSingleton<VoxelChunkSingleton>();
 
         // Get all chunks that must be updated //
         foreach ((RefRO<JustCreated> _, Entity entity) in SystemAPI.Query<RefRO<JustCreated>>().WithEntityAccess())
         {
-            this.chunkToBuildQueue.Enqueue(entity);
+            vcs.chunkToBuildQueue.Enqueue(entity);
             state.EntityManager.SetComponentEnabled<JustCreated>(entity, false);
         }
 
         // Check all jobs //
-        for (int i = this.chunkJobList.Length - 1; i >= 0; i--)
+        for (int i = vcs.chunkJobList.Length - 1; i >= 0; i--)
         {
-            ChunkData chunkData = this.chunkJobList[i];
-            if (chunkData.job.IsCompleted == true)
-            {
+
+            // Get the chunk data //
+            ChunkData chunkData = vcs.chunkJobList[i];
+
+            //if (chunkData.job.IsCompleted == true)
+            //{
 
                 // Complete the job //
                 chunkData.job.Complete();
 
-                // Build the mesh //
-                this.generateMesh(ref state, chunkData.chunk, chunkData.verticesList, chunkData.trianglesList, chunkData.uvsList);
+           //}
 
-                // Dispose all natives //
-                this.disposeAllNatives(chunkData);
+        }
 
-                // Remove the chunkData //
-                this.chunkJobList.RemoveAtSwapBack(i);
+        // Generate all mesh //
+        for (int i = vcs.chunkJobList.Length - 1; i >= 0; i--)
+        {
 
-            }
+            // Get the chunk data //
+            ChunkData chunkData = vcs.chunkJobList[i];
+
+            // Build the mesh //
+            this.generateMesh(ref state, vcs, chunkData.chunk, chunkData.verticesList, chunkData.trianglesList, chunkData.uvsList);
+
+            // Dispose all natives //
+            Utils.DisposeVCSAllNatives(chunkData);
+
+            // Remove the chunkData //
+            vcs.chunkJobList.RemoveAtSwapBack(i);
+
         }
 
         // Get the parameters //
@@ -113,14 +116,14 @@ public partial struct BuildMesh : ISystem
         int totalBlock = chunkSize * chunkSize * chunkSize;
 
         // Add job //
-        while (this.chunkToBuildQueue.Count > 0 && this.chunkJobList.Length <= VoxelWorld._Instance.chunkInitListSize)
+        while (vcs.chunkToBuildQueue.Count > 0 && vcs.chunkJobList.Length <= VoxelWorld._Instance.chunkInitListSize)
         {
 
             // Create the chunk data //
             ChunkData chunkData;
 
             // Get the entity //
-            chunkData.chunk = this.chunkToBuildQueue.Dequeue();
+            chunkData.chunk = vcs.chunkToBuildQueue.Dequeue();
 
             chunkData.frontier = NativesPool<int3>.GetList(totalBlock);
             chunkData.floodVisited = NativesPool<byte>.GetArray(totalBlock);
@@ -164,18 +167,18 @@ public partial struct BuildMesh : ISystem
             }.Schedule();
 
             // Add to the list //
-            this.chunkJobList.Add(chunkData);
+            vcs.chunkJobList.Add(chunkData);
 
         }
 
     }
 
 
-    private void generateMesh(ref SystemState state, Entity entity, NativeList<float3> verticesList, NativeList<int> trianglesList, NativeList<float2> uvsList)
+    private void generateMesh(ref SystemState state, VoxelChunkSingleton vcs, Entity entity, NativeList<float3> verticesList, NativeList<int> trianglesList, NativeList<float2> uvsList)
     {
 
         // Get a mesh from the mesh pool //
-        Mesh mesh = MeshPool.GetMesh();
+        Mesh mesh = MeshPoolManager.GetMesh();
 
         // Set the mesh //
         mesh.name = "Chunk";
@@ -191,7 +194,7 @@ public partial struct BuildMesh : ISystem
         BatchMaterialID batchMatID = gfx.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
         BatchMeshID batchMeshID = gfx.RegisterMesh(mesh);
         RenderMeshDescription desc = new RenderMeshDescription(shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.On, receiveShadows: true);
-        MaterialMeshInfo mmi = new MaterialMeshInfo { MeshID = batchMeshID, MaterialID = this.matID };
+        MaterialMeshInfo mmi = new MaterialMeshInfo { MeshID = batchMeshID, MaterialID = vcs.matID };
         RenderMeshUtility.AddComponents(entity, state.EntityManager, desc, mmi);
 
         // Set the bounds //
@@ -203,22 +206,6 @@ public partial struct BuildMesh : ISystem
 
         // Send back the mesh to the mesh pool //
         // MeshPool.ReleaseMesh(mesh);
-
-    }
-
-    private void disposeAllNatives(ChunkData chunkData)
-    {
-
-        // Dispose all tables //
-        NativesPool<int3>.ReleaseList(chunkData.frontier);
-        NativesPool<byte>.ReleaseArray(chunkData.floodVisited);
-        NativesPool<byte>.ReleaseArray(chunkData.linearFloodVisited);
-        NativesPool<BlockRender>.ReleaseArray(chunkData.blockRenders);
-        NativesPool<SquareFace>.ReleaseList(chunkData.squareList);
-
-        NativesPool<float3>.ReleaseList(chunkData.verticesList);
-        NativesPool<int>.ReleaseList(chunkData.trianglesList);
-        NativesPool<float2>.ReleaseList(chunkData.uvsList);
 
     }
 
@@ -288,7 +275,7 @@ public partial struct UpdateChunksVisibility : ISystem
             this.jobHandle.Complete();
             foreach (ChunkHit chunkHit in this.chunksHit)
             {
-                //state.EntityManager.SetComponentEnabled<JustCreated>(chunkHit.chunk, true);
+                state.EntityManager.SetComponentEnabled<JustCreated>(chunkHit.chunk, true);
             }
             this.needNewJob = true;
             return;

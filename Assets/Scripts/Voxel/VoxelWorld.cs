@@ -117,31 +117,7 @@ public class VoxelWorld : MonoBehaviour
     private void OnDestroy()
     {
         NativePoolsManager.DisposeAll();
+        MeshPoolManager.DisposeAll();
     }
-
-    //void OnEnable()
-    //{
-    //    RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
-    //}
-
-    //void OnDisable()
-    //{
-    //    RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
-    //}
-
-    //void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
-    //{
-    //    if (this.ChunkSManager.chunksList == null) return;
-
-    //    foreach (KeyValuePair<Vector3Int, VoxelChunk> kvp in this.ChunkSManager.chunksList)
-    //    {
-    //        VoxelChunk chunk = kvp.Value;
-    //        if (chunk.chunkReady && chunk.mesh != null && chunk.material != null)
-    //        {
-    //            Graphics.DrawMesh(chunk.mesh, chunk.chunkMatrix, chunk.material, 0, camera);
-    //        }
-    //    }
-    //}
-
 
 }
