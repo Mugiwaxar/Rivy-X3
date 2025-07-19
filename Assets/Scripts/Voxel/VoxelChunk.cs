@@ -81,6 +81,7 @@ public partial struct BuildMesh : ISystem
 
         // Add jobs //
         int totalBlock = vms.chunkBlocksCount;
+        int chunkSize = vms.chunkSize;
         while (vcs.chunkToBuildQueue.Count > 0 && vcs.chunkJobList.Length < vms.chunkInitListSize)
         {
 
@@ -97,7 +98,6 @@ public partial struct BuildMesh : ISystem
             chunkData.squareFaces = NativesPool<ChunkSquareFaces>.GetList(totalBlock*6);
 
             // Create the job //
-            int chunkSize = vms.chunkSize;
             GenerateChunksGraphics jobStruct = new GenerateChunksGraphics
             {
 
@@ -140,10 +140,22 @@ public partial struct BuildMesh : ISystem
             chunkData.job.Complete();
 
             // Add all squares to the buffer //
+            DynamicBuffer<ChunkSquareFaces> buffer = state.EntityManager.GetBuffer<ChunkSquareFaces>(chunkData.chunk);
+            buffer.Clear();
             for (int j = 0; j < chunkData.squareFaces.Length; j++)
             {
                 ChunkSquareFaces square = chunkData.squareFaces[j];
-                state.EntityManager.GetBuffer<ChunkSquareFaces>(chunkData.chunk).Add(square);
+                buffer.Add(square);
+            }
+
+            // Get the region coord //
+            int3 chunkPos = state.EntityManager.GetComponentData<ChunkPosition>(chunkData.chunk).Value;
+            int3 regionCoord = Utils.ChunkPosToRegionCoord(chunkPos, vms.regionSize);
+
+            // Set the region to render //
+            if (VoxelWorld._ChunkManager.regionMap.TryGetValue(regionCoord, out Entity region) == true)
+            {
+                state.EntityManager.SetComponentEnabled<RegionToRender>(region, true);
             }
 
             // Dispose all natives //

@@ -522,6 +522,7 @@ GameObject:
   - component: {fileID: 1280987763}
   - component: {fileID: 1280987766}
   - component: {fileID: 1280987767}
+  - component: {fileID: 1280987768}
   m_Layer: 0
   m_Name: VoxelWorld
   m_TagString: Untagged
@@ -616,8 +617,8 @@ MonoBehaviour:
   worldHeightInChunks: 7
   viewDistance: 0
   yViewDistance: 3
-  chunkSize: 1
   regionSize: 16
+  chunkSize: 1
   chunkInitListSize: 5
   doFloodFill: 0
   doLinearFloodFill: 0
@@ -635,6 +636,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d97fa8174f55ee45b943946560be097, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1280987768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1280987761}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dc970ab0cd1a534f868f40ac1142901, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1504105046
