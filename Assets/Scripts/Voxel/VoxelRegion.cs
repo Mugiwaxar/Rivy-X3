@@ -128,9 +128,9 @@ public static class VoxelRegion
         }
 
         // Create the lists //
-        NativeList<float3> verticesList = new NativeList<float3>(totalFaces * 6 * 4, Allocator.Temp);
-        NativeList<int> trianglesList = new NativeList<int>(totalFaces * 6 * 6, Allocator.Temp);
-        NativeList<float2> uvsList = new NativeList<float2>(totalFaces * 6 * 4, Allocator.Temp);
+        NativeList<float3> verticesList = new NativeList<float3>(totalFaces * 4, Allocator.Temp);
+        NativeList<int> trianglesList = new NativeList<int>(totalFaces * 6, Allocator.Temp);
+        NativeList<float2> uvsList = new NativeList<float2>(totalFaces * 4, Allocator.Temp);
 
         // Itinerate all chunks //
         foreach(RegionChunks chunk in chunksBuffer)
@@ -153,8 +153,9 @@ public static class VoxelRegion
                 for (int i = 0; i < squaresBuffer.Length; i++)
                 {
                     ChunkSquareFaces squareFace = squaresBuffer[i];
+                    int startIndex = verticesList.Length;
                     squareFace.GetSquare(ref verticesList, offset);
-                    squareFace.GetTriangles(i * 4, ref trianglesList);
+                    squareFace.GetTriangles(startIndex, ref trianglesList);
                     squareFace.GetUVs(ref uvsList, atlas);
                 }
             }
