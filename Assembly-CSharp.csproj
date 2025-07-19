@@ -76,7 +76,8 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelWorld.cs" />
     <Compile Include="Assets\Scripts\Static\VoxelRaycast.cs" />
     <Compile Include="Assets\Scripts\Static\Utils.cs" />
-    <Compile Include="Assets\Scripts\Block\SquareFace.cs" />
+    <Compile Include="Assets\Scripts\Voxel\VoxelRegion.cs" />
+    <Compile Include="Assets\Scripts\Block\ChunkSquareFaces.cs" />
     <Compile Include="Assets\Scripts\Block\BlockData.cs" />
     <Compile Include="Assets\Scripts\Player\SimpleCamera.cs" />
     <Compile Include="Assets\Scripts\Static\Atlas.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="Assets\Scripts\Block\BlockRender.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelChunk.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunksManager.cs" />
+    <Compile Include="Assets\Scripts\Debug\ShowEntitiesBound.cs" />
     <Compile Include="Assets\Scripts\Static\MeshPoolManager.cs" />
     <Compile Include="Assets\Scripts\Debug\NativePoolDebug.cs" />
     <Compile Include="Assets\Scripts\Static\EnumData.cs" />

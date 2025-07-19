@@ -19,7 +19,7 @@ public class NativePoolDebug : MonoBehaviour
             string text = NativesPool<int3>.GetStats() + Environment.NewLine;
             text += NativesPool<byte>.GetStats() + Environment.NewLine;
             text += NativesPool<BlockRender>.GetStats() + Environment.NewLine;
-            text += NativesPool<SquareFace>.GetStats() + Environment.NewLine;
+            text += NativesPool<ChunkSquareFaces>.GetStats() + Environment.NewLine;
             text += NativesPool<float3>.GetStats() + Environment.NewLine;
             text += NativesPool<int>.GetStats() + Environment.NewLine;
             text += NativesPool<float2>.GetStats() + Environment.NewLine;

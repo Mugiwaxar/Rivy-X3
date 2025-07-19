@@ -19,27 +19,26 @@ static public partial class ChunksGenerator
         EntityManager entityManager = state.EntityManager;
         Entity chunk = entityManager.CreateEntity();
 
-        // Add all components //
+        // Add the position components //
         entityManager.AddComponentData(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
 
-        // Calcul the chunk transform and bounds //
-        float3 worldPos = position * chunkSize;
-
         // Add the local transform //
+        float3 worldPos = position * chunkSize;
         entityManager.AddComponentData(chunk, LocalTransform.FromPosition(worldPos));
 
         // Add all enableable Components //
-        entityManager.AddComponent<JustCreated>(chunk);
+        entityManager.AddComponent<ChunkJustCreated>(chunk);
         if (VoxelWorld._Instance.doVoxelCastOcclusion == false)
-            entityManager.SetComponentEnabled<JustCreated>(chunk, true);
+            entityManager.SetComponentEnabled<ChunkJustCreated>(chunk, true);
 
-        // Check the blocks buffer //
+        // Create the buffers //
         DynamicBuffer<BlockData> blocks = entityManager.AddBuffer<BlockData>(chunk);
+        DynamicBuffer<ChunkSquareFaces> squares = entityManager.AddBuffer<ChunkSquareFaces>(chunk);
 
-        // Check the blocks buffer length //
+        // Check the buffers length //
         int total = chunkSize * chunkSize * chunkSize;
-        if (blocks.Length < total)
-            blocks.ResizeUninitialized(total);
+        if (blocks.Length < total) blocks.ResizeUninitialized(total);
+        if (squares.Length < total/2) blocks.ResizeUninitialized(total/2);
 
         // Fill the chunk table with all blocks //
         for (int x = 0; x < chunkSize; x++)
@@ -77,43 +76,42 @@ static public partial class ChunksGenerator
         public NativeArray<byte> floodVisited;
         public NativeArray<byte> linearFloodVisited;
         public NativeArray<BlockRender> blockRenders;
-        public NativeList<SquareFace> squareList;
+        public BufferLookup<ChunkSquareFaces> squareLookup;
 
-        public NativeList<float3> verticesList;
-        public NativeList<int> trianglesList;
-        public NativeList<float2> uvsList;
+        private DynamicBuffer<BlockData> currentChunk;
+        private DynamicBuffer<BlockData> leftNeighbor;
+        private DynamicBuffer<BlockData> rightNeighbor;
+        private DynamicBuffer<BlockData> bottomNeighbor;
+        private DynamicBuffer<BlockData> topNeighbor;
+        private DynamicBuffer<BlockData> backNeighbor;
+        private DynamicBuffer<BlockData> frontNeighbor;
 
-        public DynamicBuffer<BlockData> currentChunk;
-        public DynamicBuffer<BlockData> leftNeighbor;
-        public DynamicBuffer<BlockData> rightNeighbor;
-        public DynamicBuffer<BlockData> bottomNeighbor;
-        public DynamicBuffer<BlockData> topNeighbor;
-        public DynamicBuffer<BlockData> backNeighbor;
-        public DynamicBuffer<BlockData> frontNeighbor;
+        private DynamicBuffer<ChunkSquareFaces> squaresBuffer;
 
         public void Execute()
         {
 
             // Get current chunks //
-            Entity chunkBlocks = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.None);
-            this.currentChunk = this.blocksLookup[chunkBlocks];
+            Entity chunkEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.None);
+            this.currentChunk = this.blocksLookup[chunkEntity];
+            this.squaresBuffer = this.squareLookup[chunkEntity];
 
             // Get the settings //
             this.chunkSize = vms.chunkSize;
-            this.totalBlocks = vms.totalBlocks;
+            this.totalBlocks = vms.chunkBlocksCount;
 
             // Get all neighbors //
-            Entity leftNeighborEntity = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Left);
+            Entity leftNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Left);
             if (leftNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(leftNeighborEntity)) this.leftNeighbor = this.blocksLookup[leftNeighborEntity];
-            Entity rightNeighborEntity = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Right);
+            Entity rightNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Right);
             if (rightNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(rightNeighborEntity)) this.rightNeighbor = this.blocksLookup[rightNeighborEntity];
-            Entity bottomNeighborEntity = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Bottom);
+            Entity bottomNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Bottom);
             if (bottomNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(bottomNeighborEntity)) this.bottomNeighbor = this.blocksLookup[bottomNeighborEntity];
-            Entity topNeighborEntity = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Top);
+            Entity topNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Top);
             if (topNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(topNeighborEntity)) this.topNeighbor = this.blocksLookup[topNeighborEntity];
-            Entity backNeighborEntity = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Back);
+            Entity backNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Back);
             if (backNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(backNeighborEntity)) this.backNeighbor = this.blocksLookup[backNeighborEntity];
-            Entity frontNeighborEntity = ChunkSManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Front);
+            Entity frontNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Front);
             if (frontNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(frontNeighborEntity)) this.frontNeighbor = this.blocksLookup[frontNeighborEntity];
 
 
@@ -130,9 +128,6 @@ static public partial class ChunksGenerator
 
             // Build the squares list //
             this.buildSquareList();
-
-            // Build the mesh //
-            this.buildMesh();
 
         }
 
@@ -270,42 +265,28 @@ static public partial class ChunksGenerator
                 // Generate quads for each visible face oriented toward the camera //
                 if ((blockRender.renderMask & (1 << 0)) != 0 &&
                     this.IsFacingCamera(x, y - blockRender.leftHSize, z - blockRender.leftWSize, FaceDirection.Left))
-                    this.squareList.Add(new SquareFace(x, y - blockRender.leftHSize, z - blockRender.leftWSize, blockRender.leftWSize, blockRender.leftHSize, FaceDirection.Left, blockRender.blockID));
+                    this.squaresBuffer.Add(new ChunkSquareFaces(x, y - blockRender.leftHSize, z - blockRender.leftWSize, blockRender.leftWSize, blockRender.leftHSize, FaceDirection.Left, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 1)) != 0 &&
                     this.IsFacingCamera(x, y - blockRender.rightHSize, z, FaceDirection.Right))
-                    this.squareList.Add(new SquareFace(x, y - blockRender.rightHSize, z, blockRender.rightWSize, blockRender.rightHSize, FaceDirection.Right, blockRender.blockID));
+                    this.squaresBuffer.Add(new ChunkSquareFaces(x, y - blockRender.rightHSize, z, blockRender.rightWSize, blockRender.rightHSize, FaceDirection.Right, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 2)) != 0 &&
                     this.IsFacingCamera(x - blockRender.bottomWSize, y, z - blockRender.bottomHSize, FaceDirection.Bottom))
-                    this.squareList.Add(new SquareFace(x - blockRender.bottomWSize, y, z - blockRender.bottomHSize, blockRender.bottomWSize, blockRender.bottomHSize, FaceDirection.Bottom, blockRender.blockID));
+                    this.squaresBuffer.Add(new ChunkSquareFaces(x - blockRender.bottomWSize, y, z - blockRender.bottomHSize, blockRender.bottomWSize, blockRender.bottomHSize, FaceDirection.Bottom, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 3)) != 0 &&
                     this.IsFacingCamera(x - blockRender.topWSize, y, z, FaceDirection.Top))
-                    this.squareList.Add(new SquareFace(x - blockRender.topWSize, y, z, blockRender.topWSize, blockRender.topHSize, FaceDirection.Top, blockRender.blockID));
+                    this.squaresBuffer.Add(new ChunkSquareFaces(x - blockRender.topWSize, y, z, blockRender.topWSize, blockRender.topHSize, FaceDirection.Top, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 4)) != 0 &&
                     this.IsFacingCamera(x, y - blockRender.backHSize, z, FaceDirection.Back))
-                    this.squareList.Add(new SquareFace(x, y - blockRender.backHSize, z, blockRender.backWSize, blockRender.backHSize, FaceDirection.Back, blockRender.blockID));
+                    this.squaresBuffer.Add(new ChunkSquareFaces(x, y - blockRender.backHSize, z, blockRender.backWSize, blockRender.backHSize, FaceDirection.Back, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 5)) != 0 &&
                     this.IsFacingCamera(x - blockRender.frontWSize, y - blockRender.frontHSize, z, FaceDirection.Front))
-                    this.squareList.Add(new SquareFace(x - blockRender.frontWSize, y - blockRender.frontHSize, z, blockRender.frontWSize, blockRender.frontHSize, FaceDirection.Front, blockRender.blockID));
+                    this.squaresBuffer.Add(new ChunkSquareFaces(x - blockRender.frontWSize, y - blockRender.frontHSize, z, blockRender.frontWSize, blockRender.frontHSize, FaceDirection.Front, blockRender.blockID));
 
-            }
-
-        }
-
-        private void buildMesh()
-        {
-
-            // Transform the struct to lists //
-            for (int i = 0; i < this.squareList.Length; i++)
-            {
-                SquareFace square = this.squareList[i];
-                square.GetSquare(ref this.verticesList);
-                square.GetTriangles(i * 4, ref this.trianglesList);
-                square.GetUVs(ref this.uvsList, this.atlas);
             }
 
         }

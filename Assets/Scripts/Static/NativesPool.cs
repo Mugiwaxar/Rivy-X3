@@ -14,7 +14,7 @@ public static class NativePoolsManager
         NativesPool<int3>.DisposeAll();
         NativesPool<byte>.DisposeAll();
         NativesPool<BlockRender>.DisposeAll();
-        NativesPool<SquareFace>.DisposeAll();
+        NativesPool<ChunkSquareFaces>.DisposeAll();
         NativesPool<float3>.DisposeAll();
         NativesPool<int>.DisposeAll();
         NativesPool<float2>.DisposeAll();

@@ -28,7 +28,7 @@ public class VoxelWorld : MonoBehaviour
 {
 
     public static VoxelWorld _Instance;
-    public static ChunkSManager _ChunkManager
+    public static ChunksManager _ChunkManager
     {
         get { return _Instance.ChunkSManager; }
     }
@@ -45,14 +45,14 @@ public class VoxelWorld : MonoBehaviour
 
     public byte worldSizeInChunks = 4;
     public byte worldHeightInChunks = 8;
+    public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
 
     public byte viewDistance = 10;
     public byte yViewDistance = 3;
-    public int worldTotalSizeInChunks
-    {
-        get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; }
-    }
+
+    public int regionSize = 16;
     public int chunkSize = 16;
+    public int chunkBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize; } }
     public byte chunkInitListSize = 5;
 
     public bool doFloodFill = true;
@@ -64,7 +64,9 @@ public class VoxelWorld : MonoBehaviour
 
     [NonSerialized] public bool requestWorldInit = true;
 
-    [NonSerialized] public ChunkSManager ChunkSManager;
+    [NonSerialized] public ChunksManager ChunkSManager;
+
+    [NonSerialized] public BatchMaterialID MaterialID;
 
     public sealed class DeferredBootstrap : ICustomBootstrap
     {
@@ -98,7 +100,7 @@ public class VoxelWorld : MonoBehaviour
             GameObject.DestroyImmediate(this.ChunkSManager.gameObject);
         GameObject cm = new GameObject("ChunkManager");
         cm.transform.SetParent(this.transform, false);
-        this.ChunkSManager = cm.AddComponent<ChunkSManager>();
+        this.ChunkSManager = cm.AddComponent<ChunksManager>();
 
         // Destroy the old world if exist //
         World.DefaultGameObjectInjectionWorld.Dispose();
@@ -128,6 +130,10 @@ public class VoxelWorld : MonoBehaviour
         // Start the chunks group //
         chunkGroup.Enabled = true;
         this.requestWorldInit = true;
+
+        // Get the material ID //
+        EntitiesGraphicsSystem gfxSys = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
+        this.MaterialID = gfxSys.RegisterMaterial(this.Materials[0]);
 
     }
 

@@ -1,4 +1,7 @@
-﻿using Unity.Collections;
+﻿using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
@@ -17,19 +20,15 @@ public struct VoxelManagerSettings : IComponentData
 
     public byte worldSizeInChunks;
     public byte worldHeightInChunks;
+    public int worldTotalSizeInChunks;
+
+    public int regionSize;
+    public int chunkSize;
+    public int chunkBlocksCount;
+    public byte chunkInitListSize;
 
     public byte viewDistance;
     public byte yViewDistance;
-    public int worldTotalSizeInChunks
-    {
-        get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; }
-    }
-    public int chunkSize;
-    public int totalBlocks
-    {
-        get { return this.chunkSize * this.chunkSize * this.chunkSize;  }
-    }
-    public byte chunkInitListSize;
 
     public bool doFloodFill;
     public bool doLinearFloodFill;
@@ -59,12 +58,12 @@ public partial struct InitChunks : ISystem
 
         // Create the voxel chunk singleton //
         Entity vcsEntity = state.EntityManager.CreateEntity();
-        EntitiesGraphicsSystem gfxSys = World.DefaultGameObjectInjectionWorld.GetExistingSystemManaged<EntitiesGraphicsSystem>();
+
         state.EntityManager.AddComponentData(vcsEntity, new VoxelChunkSingleton
         {
             chunkToBuildQueue = new NativeQueue<Entity>(Allocator.Persistent),
             chunkJobList = new NativeList<ChunkData>(Allocator.Persistent),
-            matID = gfxSys.RegisterMaterial(VoxelWorld._Instance.Materials[0])
+            matID = world.MaterialID
         });
 
         // Create the settings singleton //
@@ -73,11 +72,16 @@ public partial struct InitChunks : ISystem
         {
             worldSizeInChunks = worldSizeInChunks,
             worldHeightInChunks = worldHeightInChunks,
+            worldTotalSizeInChunks = world.worldTotalSizeInChunk,
+
+            regionSize = world.regionSize,
+            chunkSize = chunkSize,
+            chunkBlocksCount = world.chunkBlocksCount,
+            chunkInitListSize = world.chunkInitListSize,
 
             viewDistance = world.viewDistance,
             yViewDistance = world.yViewDistance,
-            chunkSize = chunkSize,
-            chunkInitListSize = world.chunkInitListSize,
+
 
             doFloodFill = world.doFloodFill,
             doLinearFloodFill = world.doLinearFloodFill,
@@ -99,7 +103,12 @@ public partial struct InitChunks : ISystem
                 {
                     // Get the position //
                     int3 position = new int3(x, y, z);
-                    chunksMap.TryAdd(position, ChunksGenerator.CreateChunk(ref state, position, chunkSize));
+                    // Create the chunk entity //
+                    Entity chunkEntity = ChunksGenerator.CreateChunk(ref state, position, chunkSize);
+                    // Add it to the chunks map //
+                    chunksMap.TryAdd(position, chunkEntity);
+                    // Add it to the region //
+                    VoxelRegion.AddChunkToRegion(ref state, position, chunkEntity, world.regionSize);
                 }
             }
         }
@@ -142,7 +151,13 @@ public partial struct InitChunks : ISystem
 
         // Clear the chunks map //
         NativeParallelHashMap<int3, Entity> chunksMap = VoxelWorld._ChunkManager.chunksMap;
-        chunksMap.Clear();
+        if(chunksMap.IsCreated)
+            chunksMap.Clear();
+
+        // Clear the region map //
+        NativeParallelHashMap<int3, Entity> regionMap = VoxelWorld._ChunkManager.regionMap;
+        if (regionMap.IsCreated)
+            regionMap.Clear();
 
     }
 
@@ -158,23 +173,48 @@ public partial struct InitChunks : ISystem
 
 //}
 
-public class ChunkSManager : MonoBehaviour
+public class ChunksManager : MonoBehaviour
 {
 
     public NativeParallelHashMap<int3, Entity> chunksMap;
+    public NativeParallelHashMap<int3, Entity> regionMap;
+    public Dictionary<int3, Mesh> meshMap;
 
     void Awake()
     {
 
-        // Init the Map //
-        this.chunksMap = new NativeParallelHashMap<int3, Entity>(VoxelWorld._Instance.worldTotalSizeInChunks, Allocator.Persistent);
+        // Init the maps //
+        this.chunksMap = new NativeParallelHashMap<int3, Entity>(VoxelWorld._Instance.worldTotalSizeInChunk, Allocator.Persistent);
+        this.regionMap = new NativeParallelHashMap<int3, Entity>(VoxelWorld._Instance.worldTotalSizeInChunk, Allocator.Persistent);
+        this.meshMap = new Dictionary<int3, Mesh>();
 
-    }
+}
 
     void OnDestroy()
     {
         if (this.chunksMap.IsCreated)
             this.chunksMap.Dispose();
+        if (this.regionMap.IsCreated)
+            this.regionMap.Dispose();
+    }
+
+    void Update()
+    {
+        var cunksEntries = this.chunksMap.GetKeyValueArrays(Allocator.Temp);
+
+        for (int i = 0; i < cunksEntries.Length; i++)
+        {
+            int3 pos = cunksEntries.Keys[i];
+            Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
+        }
+
+        //var regionEntries = this.regionMap.GetKeyValueArrays(Allocator.Temp);
+
+        //for (int i = 0; i < regionEntries.Length; i++)
+        //{
+        //    int3 pos = regionEntries.Keys[i];
+        //    Utils.DebugDrawRegionBounds(pos, VoxelWorld._Instance.regionSize, VoxelWorld._Instance.chunkSize, UnityEngine.Color.magenta);
+        //}
     }
 
     public Entity GetChunk(Vector3Int pos, Direction direction = Direction.None)

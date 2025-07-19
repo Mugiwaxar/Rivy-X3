@@ -10,7 +10,7 @@ using static Atlas;
 
 namespace Assets.Scripts.Block
 {
-    public struct SquareFace : IBufferElementData
+    public struct ChunkSquareFaces : IBufferElementData
     {
 
         public int x;
@@ -21,7 +21,7 @@ namespace Assets.Scripts.Block
         public FaceDirection direction;
         public byte id;
 
-        public SquareFace(int x, int y, int z, byte sizeW, byte sizeH, FaceDirection direction, byte id)
+        public ChunkSquareFaces(int x, int y, int z, byte sizeW, byte sizeH, FaceDirection direction, byte id)
         {
             this.x = x;
             this.y = y;

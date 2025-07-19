@@ -22,6 +22,15 @@ public class SimpleFreeCameraInputSystem : MonoBehaviour
 
     public void OnEscape(InputAction.CallbackContext context) => escapePressed = context.ReadValueAsButton();
 
+    void OnApplicationFocus(bool focus)
+    {
+        if (focus)
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+    }
+
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -31,14 +40,21 @@ public class SimpleFreeCameraInputSystem : MonoBehaviour
     void Update()
     {
 
-        if (Cursor.visible == true)
+        if (escapePressed && Cursor.visible == false)
+        {
+            Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
-        else
+            escapePressed = false;
+        }
+        else if (escapePressed && Cursor.visible == true)
+        {
+            Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
-
+            escapePressed = false;
+        }
 
         if (Cursor.lockState == CursorLockMode.None)
-            return;
+        return;
 
         // Rotation
         yaw += lookInput.x * lookSensitivity;
