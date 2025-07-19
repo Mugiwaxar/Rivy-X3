@@ -42,7 +42,8 @@ static public partial class ChunksGenerator
         // Check the buffers length //
         int total = chunkSize * chunkSize * chunkSize;
         if (blocks.Length < total) blocks.ResizeUninitialized(total);
-        if (squares.Length < total/2) squares.ResizeUninitialized(total/2);
+        if (squares.Length < total) squares.ResizeUninitialized(total);
+        squares.Clear();
 
         // Fill the chunk table with all blocks //
         for (int x = 0; x < chunkSize; x++)

@@ -108,7 +108,7 @@ public partial struct InitChunks : ISystem
                     // Add it to the chunks map //
                     chunksMap.TryAdd(position, chunkEntity);
                     // Add it to the region //
-                    VoxelRegion.AddChunkToRegion(ref state, position, chunkEntity, world.regionSize * chunkSize);
+                    VoxelRegion.AddChunkToRegion(ref state, position, chunkEntity, world.regionSize);
                 }
             }
         }
@@ -200,21 +200,21 @@ public class ChunksManager : MonoBehaviour
 
     void Update()
     {
-        var cunksEntries = this.chunksMap.GetKeyValueArrays(Allocator.Temp);
+        //var cunksEntries = this.chunksMap.GetKeyValueArrays(Allocator.Temp);
 
-        for (int i = 0; i < cunksEntries.Length; i++)
-        {
-            int3 pos = cunksEntries.Keys[i];
-            Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
-        }
-
-        //var regionEntries = this.regionMap.GetKeyValueArrays(Allocator.Temp);
-
-        //for (int i = 0; i < regionEntries.Length; i++)
+        //for (int i = 0; i < cunksEntries.Length; i++)
         //{
-        //    int3 pos = regionEntries.Keys[i];
-        //    Utils.DebugDrawRegionBounds(pos, VoxelWorld._Instance.regionSize, VoxelWorld._Instance.chunkSize, UnityEngine.Color.magenta);
+        //    int3 pos = cunksEntries.Keys[i];
+        //    Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
         //}
+
+        var regionEntries = this.regionMap.GetKeyValueArrays(Allocator.Temp);
+
+        for (int i = 0; i < regionEntries.Length; i++)
+        {
+            int3 pos = regionEntries.Keys[i];
+            Utils.DebugDrawRegionBounds(pos, VoxelWorld._Instance.regionSize, VoxelWorld._Instance.chunkSize, UnityEngine.Color.magenta);
+        }
     }
 
     public Entity GetChunk(Vector3Int pos, Direction direction = Direction.None)

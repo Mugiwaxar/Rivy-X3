@@ -56,7 +56,7 @@ public static class VoxelRegion
 
         // Get region coord //
         int3 regionCoord = position / regionSize;
-        float3 worldPos = regionCoord * regionSize;
+        float3 worldPos = regionCoord * regionSize * VoxelWorld._Instance.chunkSize;
 
         // Check if the region exist or create it //
         Entity regionEntity;
@@ -99,8 +99,9 @@ public static class VoxelRegion
         RenderMeshUtility.AddComponents(regionEntity, state.EntityManager, desc, mmi);
 
         // Set the bounds //
-        float3 center = worldPos + new float3(regionSize * 0.5f);
-        float3 extents = new float3(regionSize * 0.5f);
+        int chunkSize = VoxelWorld._Instance.chunkSize;
+        float3 center = worldPos + new float3(regionSize * chunkSize * 0.5f);
+        float3 extents = new float3(regionSize * chunkSize * 0.5f);
         AABB bounds = new AABB { Center = center, Extents = extents };
         state.EntityManager.SetComponentData(regionEntity, new RenderBounds { Value = bounds });
 
