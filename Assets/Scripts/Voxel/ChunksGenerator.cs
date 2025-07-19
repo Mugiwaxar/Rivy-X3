@@ -32,13 +32,17 @@ static public partial class ChunksGenerator
             entityManager.SetComponentEnabled<ChunkJustCreated>(chunk, true);
 
         // Create the buffers //
-        DynamicBuffer<BlockData> blocks = entityManager.AddBuffer<BlockData>(chunk);
-        DynamicBuffer<ChunkSquareFaces> squares = entityManager.AddBuffer<ChunkSquareFaces>(chunk);
+        entityManager.AddBuffer<BlockData>(chunk);
+        entityManager.AddBuffer<ChunkSquareFaces>(chunk);
+
+        // Re-acquire the buffers after all structural changes
+        DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
+        DynamicBuffer<ChunkSquareFaces> squares = entityManager.GetBuffer<ChunkSquareFaces>(chunk);
 
         // Check the buffers length //
         int total = chunkSize * chunkSize * chunkSize;
         if (blocks.Length < total) blocks.ResizeUninitialized(total);
-        if (squares.Length < total/2) blocks.ResizeUninitialized(total/2);
+        if (squares.Length < total/2) squares.ResizeUninitialized(total/2);
 
         // Fill the chunk table with all blocks //
         for (int x = 0; x < chunkSize; x++)
@@ -76,7 +80,7 @@ static public partial class ChunksGenerator
         public NativeArray<byte> floodVisited;
         public NativeArray<byte> linearFloodVisited;
         public NativeArray<BlockRender> blockRenders;
-        public BufferLookup<ChunkSquareFaces> squareLookup;
+        public NativeList<ChunkSquareFaces> squareFaces;
 
         private DynamicBuffer<BlockData> currentChunk;
         private DynamicBuffer<BlockData> leftNeighbor;
@@ -86,7 +90,6 @@ static public partial class ChunksGenerator
         private DynamicBuffer<BlockData> backNeighbor;
         private DynamicBuffer<BlockData> frontNeighbor;
 
-        private DynamicBuffer<ChunkSquareFaces> squaresBuffer;
 
         public void Execute()
         {
@@ -94,7 +97,6 @@ static public partial class ChunksGenerator
             // Get current chunks //
             Entity chunkEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.None);
             this.currentChunk = this.blocksLookup[chunkEntity];
-            this.squaresBuffer = this.squareLookup[chunkEntity];
 
             // Get the settings //
             this.chunkSize = vms.chunkSize;
@@ -265,27 +267,27 @@ static public partial class ChunksGenerator
                 // Generate quads for each visible face oriented toward the camera //
                 if ((blockRender.renderMask & (1 << 0)) != 0 &&
                     this.IsFacingCamera(x, y - blockRender.leftHSize, z - blockRender.leftWSize, FaceDirection.Left))
-                    this.squaresBuffer.Add(new ChunkSquareFaces(x, y - blockRender.leftHSize, z - blockRender.leftWSize, blockRender.leftWSize, blockRender.leftHSize, FaceDirection.Left, blockRender.blockID));
+                    this.squareFaces.AddNoResize(new ChunkSquareFaces(x, y - blockRender.leftHSize, z - blockRender.leftWSize, blockRender.leftWSize, blockRender.leftHSize, FaceDirection.Left, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 1)) != 0 &&
                     this.IsFacingCamera(x, y - blockRender.rightHSize, z, FaceDirection.Right))
-                    this.squaresBuffer.Add(new ChunkSquareFaces(x, y - blockRender.rightHSize, z, blockRender.rightWSize, blockRender.rightHSize, FaceDirection.Right, blockRender.blockID));
+                    this.squareFaces.AddNoResize(new ChunkSquareFaces(x, y - blockRender.rightHSize, z, blockRender.rightWSize, blockRender.rightHSize, FaceDirection.Right, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 2)) != 0 &&
                     this.IsFacingCamera(x - blockRender.bottomWSize, y, z - blockRender.bottomHSize, FaceDirection.Bottom))
-                    this.squaresBuffer.Add(new ChunkSquareFaces(x - blockRender.bottomWSize, y, z - blockRender.bottomHSize, blockRender.bottomWSize, blockRender.bottomHSize, FaceDirection.Bottom, blockRender.blockID));
+                    this.squareFaces.AddNoResize(new ChunkSquareFaces(x - blockRender.bottomWSize, y, z - blockRender.bottomHSize, blockRender.bottomWSize, blockRender.bottomHSize, FaceDirection.Bottom, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 3)) != 0 &&
                     this.IsFacingCamera(x - blockRender.topWSize, y, z, FaceDirection.Top))
-                    this.squaresBuffer.Add(new ChunkSquareFaces(x - blockRender.topWSize, y, z, blockRender.topWSize, blockRender.topHSize, FaceDirection.Top, blockRender.blockID));
+                    this.squareFaces.AddNoResize(new ChunkSquareFaces(x - blockRender.topWSize, y, z, blockRender.topWSize, blockRender.topHSize, FaceDirection.Top, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 4)) != 0 &&
                     this.IsFacingCamera(x, y - blockRender.backHSize, z, FaceDirection.Back))
-                    this.squaresBuffer.Add(new ChunkSquareFaces(x, y - blockRender.backHSize, z, blockRender.backWSize, blockRender.backHSize, FaceDirection.Back, blockRender.blockID));
+                    this.squareFaces.AddNoResize(new ChunkSquareFaces(x, y - blockRender.backHSize, z, blockRender.backWSize, blockRender.backHSize, FaceDirection.Back, blockRender.blockID));
 
                 if ((blockRender.renderMask & (1 << 5)) != 0 &&
                     this.IsFacingCamera(x - blockRender.frontWSize, y - blockRender.frontHSize, z, FaceDirection.Front))
-                    this.squaresBuffer.Add(new ChunkSquareFaces(x - blockRender.frontWSize, y - blockRender.frontHSize, z, blockRender.frontWSize, blockRender.frontHSize, FaceDirection.Front, blockRender.blockID));
+                    this.squareFaces.AddNoResize(new ChunkSquareFaces(x - blockRender.frontWSize, y - blockRender.frontHSize, z, blockRender.frontWSize, blockRender.frontHSize, FaceDirection.Front, blockRender.blockID));
 
             }
 

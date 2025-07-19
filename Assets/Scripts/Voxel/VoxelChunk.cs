@@ -38,6 +38,7 @@ public struct ChunkData
     public NativeArray<byte> floodVisited;
     public NativeArray<byte> linearFloodVisited;
     public NativeArray<BlockRender> blockRenders;
+    public NativeList<ChunkSquareFaces> squareFaces;
 
 }
 
@@ -93,6 +94,7 @@ public partial struct BuildMesh : ISystem
             chunkData.floodVisited = NativesPool<byte>.GetArray(totalBlock);
             chunkData.linearFloodVisited = NativesPool<byte>.GetArray(totalBlock);
             chunkData.blockRenders = NativesPool<BlockRender>.GetArray(totalBlock);
+            chunkData.squareFaces = NativesPool<ChunkSquareFaces>.GetList(totalBlock*6);
 
             // Create the job //
             int chunkSize = vms.chunkSize;
@@ -112,7 +114,7 @@ public partial struct BuildMesh : ISystem
                 floodVisited = chunkData.floodVisited,
                 linearFloodVisited = chunkData.linearFloodVisited,
                 blockRenders = chunkData.blockRenders,
-                squareLookup = SystemAPI.GetBufferLookup<ChunkSquareFaces>(),
+                squareFaces = chunkData.squareFaces
 
             };
 
@@ -136,6 +138,13 @@ public partial struct BuildMesh : ISystem
 
             // Complete the job //
             chunkData.job.Complete();
+
+            // Add all squares to the buffer //
+            for (int j = 0; j < chunkData.squareFaces.Length; j++)
+            {
+                ChunkSquareFaces square = chunkData.squareFaces[j];
+                state.EntityManager.GetBuffer<ChunkSquareFaces>(chunkData.chunk).Add(square);
+            }
 
             // Dispose all natives //
             Utils.DisposeVCSAllNatives(chunkData);

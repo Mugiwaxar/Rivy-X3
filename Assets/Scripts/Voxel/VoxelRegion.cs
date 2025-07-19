@@ -8,6 +8,7 @@ using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.LightTransport;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using static Atlas;
@@ -33,7 +34,8 @@ public partial struct RegionsSystem : ISystem
         {
             state.EntityManager.SetComponentEnabled<RegionToRender>(entity, false);
             EntityManager entityManager = state.EntityManager;
-            VoxelRegion.GenerateMesh(ref entityManager, entity, entityManager.GetComponentData<RegionCoord>(entity).Value);
+            VoxelWorld world = VoxelWorld._Instance;
+            VoxelRegion.GenerateMesh(ref entityManager, entity, entityManager.GetComponentData<RegionCoord>(entity).Value, world.regionSize * world.chunkSize);
         }
 
     }
@@ -54,7 +56,7 @@ public static class VoxelRegion
 
         // Get region coord //
         int3 regionCoord = position / regionSize;
-        float3 worldPos = position * regionSize;
+        float3 worldPos = regionCoord * regionSize;
 
         // Check if the region exist or create it //
         Entity regionEntity;
@@ -86,7 +88,7 @@ public static class VoxelRegion
         entityManager.AddBuffer<RegionChunks>(regionEntity);
         entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(worldPos));
 
-        Mesh mesh = GenerateMesh(ref entityManager, regionEntity, regionCoord);
+        Mesh mesh = GenerateMesh(ref entityManager, regionEntity, regionCoord, regionSize);
 
         // Add the render components //
         EntitiesGraphicsSystem gfx = state.World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
@@ -106,36 +108,52 @@ public static class VoxelRegion
 
     }
 
-    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCood)
+    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCood, int3 regionSize)
     {
 
         // Get atlas and blocks count //
         int chunkBlocksCount = VoxelWorld._Instance.chunkBlocksCount;
+        int regionBlocksCount = VoxelWorld._Instance.regionBlocksCount;
         AtlasData atlas = VoxelWorld._Instance._Atlas;
-
-        // Create the lists //
-        NativeList<float3> verticesList = NativesPool<float3>.GetList(chunkBlocksCount * 6 * 4);
-        NativeList<int> trianglesList = NativesPool<int>.GetList(chunkBlocksCount * 6 * 6);
-        NativeList<float2> uvsList = NativesPool<float2>.GetList(chunkBlocksCount * 6 * 4);
 
         // Get the region buffer //
         DynamicBuffer<RegionChunks> chunksBuffer = entityManager.GetBuffer<RegionChunks>(regionEntity);
+
+        // Count the faces //
+        int totalFaces = 0;
+        foreach (RegionChunks chunk in chunksBuffer)
+        {
+            if (entityManager.HasComponent<ChunkSquareFaces>(chunk.ChunkEntity))
+                totalFaces += entityManager.GetBuffer<ChunkSquareFaces>(chunk.ChunkEntity).Length;
+        }
+
+        // Create the lists //
+        NativeList<float3> verticesList = new NativeList<float3>(totalFaces * 6 * 4, Allocator.Temp);
+        NativeList<int> trianglesList = new NativeList<int>(totalFaces * 6 * 6, Allocator.Temp);
+        NativeList<float2> uvsList = new NativeList<float2>(totalFaces * 6 * 4, Allocator.Temp);
 
         // Itinerate all chunks //
         foreach(RegionChunks chunk in chunksBuffer)
         {
 
             // Check if the chunk was created //
-            if (entityManager.HasComponent<ChunkSquareFaces>(chunk.ChunkEntity))
+            if (entityManager.HasComponent<ChunkPosition>(chunk.ChunkEntity) && entityManager.HasComponent<ChunkSquareFaces>(chunk.ChunkEntity))
             {
+
+                // Get the chunk position //
+                int3 chunkPos = entityManager.GetComponentData<ChunkPosition>(chunk.ChunkEntity).Value;
+
                 // Get the squares buffer //
                 DynamicBuffer<ChunkSquareFaces> squaresBuffer = entityManager.GetBuffer<ChunkSquareFaces>(chunk.ChunkEntity);
+
+                // Calcule the offset //
+                int3 offset = chunkPos - (regionCood * regionSize);
 
                 // Generate the Lists //
                 for (int i = 0; i < squaresBuffer.Length; i++)
                 {
                     ChunkSquareFaces squareFace = squaresBuffer[i];
-                    squareFace.GetSquare(ref verticesList);
+                    squareFace.GetSquare(ref verticesList, offset);
                     squareFace.GetTriangles(i * 4, ref trianglesList);
                     squareFace.GetUVs(ref uvsList, atlas);
                 }
@@ -162,9 +180,9 @@ public static class VoxelRegion
         VoxelWorld._ChunkManager.meshMap[regionCood] = mesh;
 
         // Release all natives //
-        NativesPool<float3>.ReleaseList(verticesList);
-        NativesPool<int>.ReleaseList(trianglesList);
-        NativesPool<float2>.ReleaseList(uvsList);
+        verticesList.Dispose();
+        trianglesList.Dispose();
+        uvsList.Dispose();
 
         // Return the mesh //
         return mesh;

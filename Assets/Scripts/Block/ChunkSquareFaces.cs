@@ -32,7 +32,7 @@ namespace Assets.Scripts.Block
             this.id = id;
         }
 
-        public void GetSquare(ref NativeList<float3> verticesList)
+        public void GetSquare(ref NativeList<float3> verticesList, int3 offset)
         {
             float3 p0, p1, p2, p3;
             switch (this.direction)
@@ -76,10 +76,10 @@ namespace Assets.Scripts.Block
                 default:
                     return;
             }
-            verticesList.AddNoResize(p0);
-            verticesList.AddNoResize(p1);
-            verticesList.AddNoResize(p2);
-            verticesList.AddNoResize(p3);
+            verticesList.AddNoResize(p0 + offset);
+            verticesList.AddNoResize(p1 + offset);
+            verticesList.AddNoResize(p2 + offset);
+            verticesList.AddNoResize(p3 + offset);
         }
 
 

@@ -53,6 +53,7 @@ public class VoxelWorld : MonoBehaviour
     public int regionSize = 16;
     public int chunkSize = 16;
     public int chunkBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize; } }
+    public int regionBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize * this.regionSize * this.regionSize * this.regionSize; } }
     public byte chunkInitListSize = 5;
 
     public bool doFloodFill = true;

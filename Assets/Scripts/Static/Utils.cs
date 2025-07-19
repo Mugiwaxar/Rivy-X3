@@ -48,6 +48,7 @@ public static class Utils
         NativesPool<byte>.ReleaseArray(chunkData.floodVisited);
         NativesPool<byte>.ReleaseArray(chunkData.linearFloodVisited);
         NativesPool<BlockRender>.ReleaseArray(chunkData.blockRenders);
+        NativesPool<ChunkSquareFaces>.ReleaseList(chunkData.squareFaces);
 
     }
 

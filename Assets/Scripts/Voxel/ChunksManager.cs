@@ -108,7 +108,7 @@ public partial struct InitChunks : ISystem
                     // Add it to the chunks map //
                     chunksMap.TryAdd(position, chunkEntity);
                     // Add it to the region //
-                    VoxelRegion.AddChunkToRegion(ref state, position, chunkEntity, world.regionSize);
+                    VoxelRegion.AddChunkToRegion(ref state, position, chunkEntity, world.regionSize * chunkSize);
                 }
             }
         }
