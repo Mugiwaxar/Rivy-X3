@@ -35,7 +35,7 @@ public partial struct RegionsSystem : ISystem
             state.EntityManager.SetComponentEnabled<RegionToRender>(entity, false);
             EntityManager entityManager = state.EntityManager;
             VoxelWorld world = VoxelWorld._Instance;
-            VoxelRegion.GenerateMesh(ref entityManager, entity, entityManager.GetComponentData<RegionCoord>(entity).Value, world.regionSize * world.chunkSize);
+            VoxelRegion.GenerateMesh(ref entityManager, entity, entityManager.GetComponentData<RegionCoord>(entity).Value, world.regionSize);
         }
 
     }
@@ -100,7 +100,7 @@ public static class VoxelRegion
 
         // Set the bounds //
         int chunkSize = VoxelWorld._Instance.chunkSize;
-        float3 center = worldPos + new float3(regionSize * chunkSize * 0.5f);
+        float3 center = new float3(regionSize * chunkSize * 0.5f);
         float3 extents = new float3(regionSize * chunkSize * 0.5f);
         AABB bounds = new AABB { Center = center, Extents = extents };
         state.EntityManager.SetComponentData(regionEntity, new RenderBounds { Value = bounds });
@@ -109,7 +109,7 @@ public static class VoxelRegion
 
     }
 
-    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCood, int3 regionSize)
+    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCoord, int3 regionSize)
     {
 
         // Get atlas and blocks count //
@@ -149,7 +149,7 @@ public static class VoxelRegion
                 DynamicBuffer<ChunkSquareFaces> squaresBuffer = entityManager.GetBuffer<ChunkSquareFaces>(chunk.ChunkEntity);
 
                 // Calcule the offset //
-                int3 offset = (chunkPos * chunkSize) - (regionCood * regionSize);
+                int3 offset = (chunkPos * chunkSize) - (regionCoord * regionSize * chunkSize);
 
                 // Generate the Lists //
                 for (int i = 0; i < squaresBuffer.Length; i++)
@@ -166,7 +166,7 @@ public static class VoxelRegion
 
         // Get the old mesh or get a new one //
         Mesh mesh;
-        if (VoxelWorld._ChunkManager.meshMap.TryGetValue(regionCood, out mesh) == false)
+        if (VoxelWorld._ChunkManager.meshMap.TryGetValue(regionCoord, out mesh) == false)
             mesh = MeshPoolManager.GetMesh();
 
         // Set the mesh //
@@ -180,7 +180,7 @@ public static class VoxelRegion
         mesh.UploadMeshData(false);
 
         // Add the mesh to the mesh table //
-        VoxelWorld._ChunkManager.meshMap[regionCood] = mesh;
+        VoxelWorld._ChunkManager.meshMap[regionCoord] = mesh;
 
         // Release all natives //
         verticesList.Dispose();

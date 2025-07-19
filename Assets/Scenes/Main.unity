@@ -373,7 +373,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 177638, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22451668, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
       propertyPath: m_Pivot.x
@@ -614,8 +614,9 @@ MonoBehaviour:
   atlasTexture: {fileID: 2800000, guid: 9b669b78c1cdef74aa45b8e3e5e5a166, type: 3}
   worldSizeInChunks: 50
   worldHeightInChunks: 1
-  viewDistance: 0
+  viewDistance: 100
   yViewDistance: 3
+  voxelRaysCount: 30
   regionSize: 16
   chunkSize: 16
   chunkInitListSize: 16
@@ -623,8 +624,8 @@ MonoBehaviour:
   doLinearFloodFill: 1
   doFacesOcclusion: 1
   doGreedyMeshing: 1
-  doFaceNormalCheck: 0
-  doVoxelCastOcclusion: 0
+  doFaceNormalCheck: 1
+  doVoxelCastOcclusion: 1
 --- !u!114 &1280987767
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -977,8 +978,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1823688464}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.72145766, z: 0, w: 0.6924586}
-  m_LocalPosition: {x: -71.7, y: 15.7, z: 12.6}
+  m_LocalRotation: {x: 0.3695445, y: 0.101541586, z: 0.02402702, w: 0.92333573}
+  m_LocalPosition: {x: 473.9, y: 227.7, z: -98.9}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

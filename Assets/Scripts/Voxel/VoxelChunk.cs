@@ -208,31 +208,29 @@ public partial struct UpdateChunksVisibility : ISystem
         this.chunksHit.Dispose();
     }
 
-    public void OnUpdate(ref SystemState state)
+    public void Test(ref SystemState state)
     {
+
+        VoxelManagerSettings vms = SystemAPI.GetSingleton<VoxelManagerSettings>();
 
         // Init all values //
         if (this.init == false)
         {
-            this.rayCount = 1;
-            this.maxDistance = 1000;
-            this.chunkSize = VoxelWorld._Instance.chunkSize;
+            this.rayCount = vms.voxelRaysCount;
+            this.maxDistance = vms.viewDistance;
+            this.chunkSize = vms.chunkSize;
             this.rayCasts = new NativeArray<RayCast>(rayCount, Allocator.Persistent);
             this.chunksHit = new NativeList<ChunkHit>(rayCount, Allocator.Persistent);
             this.init = true;
             this.needNewJob = true;
         }
 
-        // Return if VoxexCast occlusion is disabled //
-        if (VoxelWorld._Instance.doVoxelCastOcclusion == false)
-            return;
-
         // Check the camera //
         if (Camera.main == null)
             return;
 
         // Check if the job is completed //
-        if (this.jobHandle.IsCompleted == true)
+        if (this.jobHandle.IsCompleted == true && this.needNewJob == false)
         {
             this.jobHandle.Complete();
             foreach (ChunkHit chunkHit in this.chunksHit)
@@ -248,7 +246,7 @@ public partial struct UpdateChunksVisibility : ISystem
             return;
 
         // Get random raycast //
-        for (int i = 0; i < rayCount; i++)
+        for (int i = 0; i < this.rayCount; i++)
         {
 
             Vector3 screenPoint = new Vector3(
@@ -262,7 +260,7 @@ public partial struct UpdateChunksVisibility : ISystem
             RayCast rayCast = new RayCast();
             rayCast.origin = ray.origin;
             rayCast.direction = math.normalize((float3)ray.direction);
-            rayCast.distance = maxDistance;
+            rayCast.distance = this.maxDistance;
             this.rayCasts[i] = rayCast;
 
         }
@@ -276,9 +274,9 @@ public partial struct UpdateChunksVisibility : ISystem
             rayCasts = this.rayCasts,
             chunksHit = this.chunksHit.AsParallelWriter(),
 
-            ChunkMap = VoxelWorld._Instance.ChunkSManager.chunksMap,
+            ChunkMap = VoxelWorld._ChunkManager.chunksMap,
             BlocksLookup = SystemAPI.GetBufferLookup<BlockData>(true),
-            ChunkSize = chunkSize,
+            ChunkSize = this.chunkSize,
 
         };
 

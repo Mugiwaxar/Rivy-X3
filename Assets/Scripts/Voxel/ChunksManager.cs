@@ -27,15 +27,15 @@ public struct VoxelManagerSettings : IComponentData
     public int chunkBlocksCount;
     public byte chunkInitListSize;
 
-    public byte viewDistance;
-    public byte yViewDistance;
+    public int viewDistance;
+    public int yViewDistance;
+    public byte voxelRaysCount;
 
     public bool doFloodFill;
     public bool doLinearFloodFill;
     public bool doFacesOcclusion;
     public bool doGreedyMeshing;
     public bool doFaceNormalCheck;
-    public bool doVoxelCastOcclusion;
 
 }
 
@@ -81,14 +81,14 @@ public partial struct InitChunks : ISystem
 
             viewDistance = world.viewDistance,
             yViewDistance = world.yViewDistance,
+            voxelRaysCount = world.voxelRaysCount,
 
 
             doFloodFill = world.doFloodFill,
             doLinearFloodFill = world.doLinearFloodFill,
             doFacesOcclusion = world.doFacesOcclusion,
             doGreedyMeshing = world.doGreedyMeshing,
-            doFaceNormalCheck = world.doFaceNormalCheck,
-            doVoxelCastOcclusion = world.doVoxelCastOcclusion
+            doFaceNormalCheck = world.doFaceNormalCheck
         });
 
         // Get the chunks map //
@@ -200,13 +200,13 @@ public class ChunksManager : MonoBehaviour
 
     void Update()
     {
-        //var cunksEntries = this.chunksMap.GetKeyValueArrays(Allocator.Temp);
+        var cunksEntries = this.chunksMap.GetKeyValueArrays(Allocator.Temp);
 
-        //for (int i = 0; i < cunksEntries.Length; i++)
-        //{
-        //    int3 pos = cunksEntries.Keys[i];
-        //    Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
-        //}
+        for (int i = 0; i < cunksEntries.Length; i++)
+        {
+            int3 pos = cunksEntries.Keys[i];
+            Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
+        }
 
         var regionEntries = this.regionMap.GetKeyValueArrays(Allocator.Temp);
 

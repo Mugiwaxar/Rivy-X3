@@ -28,8 +28,6 @@ static public partial class ChunksGenerator
 
         // Add all enableable Components //
         entityManager.AddComponent<ChunkJustCreated>(chunk);
-        if (VoxelWorld._Instance.doVoxelCastOcclusion == false)
-            entityManager.SetComponentEnabled<ChunkJustCreated>(chunk, true);
 
         // Create the buffers //
         entityManager.AddBuffer<BlockData>(chunk);

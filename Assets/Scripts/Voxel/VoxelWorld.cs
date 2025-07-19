@@ -47,8 +47,9 @@ public class VoxelWorld : MonoBehaviour
     public byte worldHeightInChunks = 8;
     public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
 
-    public byte viewDistance = 10;
-    public byte yViewDistance = 3;
+    public int viewDistance = 100;
+    public int yViewDistance = 3;
+    public byte voxelRaysCount = 30;
 
     public int regionSize = 16;
     public int chunkSize = 16;
@@ -61,7 +62,6 @@ public class VoxelWorld : MonoBehaviour
     public bool doFacesOcclusion = true;
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
-    public bool doVoxelCastOcclusion = false;
 
     [NonSerialized] public bool requestWorldInit = true;
 
