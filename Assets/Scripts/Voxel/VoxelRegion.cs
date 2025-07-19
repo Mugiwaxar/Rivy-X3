@@ -112,6 +112,7 @@ public static class VoxelRegion
     {
 
         // Get atlas and blocks count //
+        int chunkSize = VoxelWorld._Instance.chunkSize;
         int chunkBlocksCount = VoxelWorld._Instance.chunkBlocksCount;
         int regionBlocksCount = VoxelWorld._Instance.regionBlocksCount;
         AtlasData atlas = VoxelWorld._Instance._Atlas;
@@ -147,7 +148,7 @@ public static class VoxelRegion
                 DynamicBuffer<ChunkSquareFaces> squaresBuffer = entityManager.GetBuffer<ChunkSquareFaces>(chunk.ChunkEntity);
 
                 // Calcule the offset //
-                int3 offset = chunkPos - (regionCood * regionSize);
+                int3 offset = (chunkPos * chunkSize) - (regionCood * regionSize);
 
                 // Generate the Lists //
                 for (int i = 0; i < squaresBuffer.Length; i++)
