@@ -12,48 +12,67 @@ using static Atlas;
 
 static public partial class ChunksGenerator
 {
-    public static Entity CreateChunk(ref SystemState state, int3 position, int chunkSize)
+    public static Entity CreateChunk(ref SystemState state, int3 position, int chunkSize, bool removeFullAirChunk, ref EntityCommandBuffer ecb)
     {
 
         // Create the entity //
-        EntityManager entityManager = state.EntityManager;
-        Entity chunk = entityManager.CreateEntity();
+        Entity chunk = ecb.CreateEntity();
 
         // Add the position components //
-        entityManager.AddComponentData(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
+        ecb.AddComponent(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
 
         // Add the local transform //
         float3 worldPos = position * chunkSize;
-        entityManager.AddComponentData(chunk, LocalTransform.FromPosition(worldPos));
+        ecb.AddComponent(chunk, LocalTransform.FromPosition(worldPos));
 
         // Add all enableable Components //
-        entityManager.AddComponent<ChunkJustCreated>(chunk);
+        ecb.AddComponent<ChunkNeedBlocks>(chunk);
+        ecb.AddComponent<ChunkNeedRender>(chunk);
+        ecb.SetComponentEnabled<ChunkNeedRender>(chunk, false);
 
         // Create the buffers //
-        entityManager.AddBuffer<BlockData>(chunk);
-        entityManager.AddBuffer<ChunkSquareFaces>(chunk);
+        ecb.AddBuffer<BlockData>(chunk);
+        ecb.AddBuffer<ChunkSquareFaces>(chunk);
 
-        // Re-acquire the buffers after all structural changes
-        DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
-        DynamicBuffer<ChunkSquareFaces> squares = entityManager.GetBuffer<ChunkSquareFaces>(chunk);
+        //// Re-acquire the buffers after all structural changes
+        //DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
+        //DynamicBuffer<ChunkSquareFaces> squares = entityManager.GetBuffer<ChunkSquareFaces>(chunk);
 
-        // Check the buffers length //
-        int total = chunkSize * chunkSize * chunkSize;
-        if (blocks.Length < total) blocks.ResizeUninitialized(total);
-        if (squares.Length < total) squares.ResizeUninitialized(total);
-        squares.Clear();
+        //// Check the buffers length //
+        //int total = chunkSize * chunkSize * chunkSize;
+        //if (blocks.Length < total) blocks.ResizeUninitialized(total);
+        //if (squares.Length < total) squares.ResizeUninitialized(total);
+        //squares.Clear();
 
-        // Fill the chunk table with all blocks //
-        for (int x = 0; x < chunkSize; x++)
-        {
-            for (int y = 0; y < chunkSize; y++)
-            {
-                for (int z = 0; z < chunkSize; z++)
-                {
-                    blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)1);
-                }
-            }
-        }
+        //// Full air chunk, don't create //
+        //bool fullAir = true;
+
+        //// Fill the chunk table with all blocks //
+        //for (int x = 0; x < chunkSize; x++)
+        //{
+        //    for (int y = 0; y < chunkSize; y++)
+        //    {
+        //        for (int z = 0; z < chunkSize; z++)
+        //        {
+        //            int yRealPos = position.y * chunkSize + y;
+        //            if (yRealPos > 20)
+        //            {
+        //                blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)0, true);
+        //            }
+        //            else
+        //            {
+        //                blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)1);
+        //                fullAir = false;
+        //            }
+        //        }
+        //    }
+        //}
+
+        //if (fullAir == true && removeFullAirChunk == true)
+        //{
+        //    entityManager.DestroyEntity(chunk);
+        //    return Entity.Null;
+        //}
 
         return chunk;
 
@@ -63,7 +82,7 @@ static public partial class ChunksGenerator
     public partial struct GenerateChunksGraphics : IJob
     {
 
-        [ReadOnly] public VoxelManagerSettings vms;
+        [ReadOnly] public WorldSettings vms;
 
         [ReadOnly] public int3 pos;
         [ReadOnly] public float3 chunkCenter;
@@ -184,7 +203,7 @@ static public partial class ChunksGenerator
         private void executeLinearFloodFill()
         {
 
-            // Check for all dirrections //
+            // Check for all directions //
             for (int dirIndex = 0; dirIndex < 6; dirIndex++)
             {
                 int3 dir = Directions[dirIndex];

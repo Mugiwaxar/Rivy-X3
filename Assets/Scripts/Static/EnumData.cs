@@ -24,4 +24,13 @@ public class EnumData : MonoBehaviour
         Stone = 3
     }
 
+    [System.Serializable]
+    public enum LODLevel : byte
+    {
+        TooFar = 0,
+        Far = 1,
+        Near = 2,
+        PlayerContact = 3
+    }
+
 }

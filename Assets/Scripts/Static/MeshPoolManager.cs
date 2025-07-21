@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 public static class MeshPoolManager
 {
-    private static readonly Stack<Mesh> Pool = new();
+    private static readonly Stack<Mesh> Pool = new Stack<Mesh>();
+    public static Dictionary<int3, Mesh> UsedMesh = new Dictionary<int3, Mesh>();
     private static readonly object Locker = new();
     private const int MaxMeshInStack = 100;
 
@@ -40,6 +42,25 @@ public static class MeshPoolManager
         }
     }
 
+    public static void SaveMesh(int3 coor, Mesh mesh)
+    {
+        UsedMesh.TryAdd(coor, mesh);
+    }
+
+    public static Mesh GetSavedMesh(int3 coord)
+    {
+        if (UsedMesh.TryGetValue(coord, out Mesh mesh) == true)
+            return mesh;
+        else
+            return GetMesh();
+    }
+
+    public static void ReleaseSavedMesh(int3 coord)
+    {
+        if (UsedMesh.TryGetValue(coord, out Mesh mesh) == true)
+            ReleaseMesh(mesh);
+    }
+
     public static void DisposeAll()
     {
         foreach (var mesh in Pool)
@@ -49,7 +70,6 @@ public static class MeshPoolManager
 
     public static string GetStats()
     {
-        int total = Pool.Count;
-        return $"Mesh count: {total}";
+        return $"Mesh released: {Pool.Count},  Mesh used: {UsedMesh.Count}";
     }
 }

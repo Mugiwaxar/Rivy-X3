@@ -1,9 +1,11 @@
 ﻿using Assets.Scripts.Block;
 using System.Collections.Generic;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using static BuildMesh;
 using static EnumData;
+using static UnityEngine.Rendering.DebugUI;
 
 public static class Utils
 {
@@ -23,32 +25,20 @@ public static class Utils
         }
     }
 
-    static public void DestroyVoxelChunkSingleton(VoxelChunkSingleton vcs)
+    public static bool TryGetSingletonECS<T>(out T value) where T : unmanaged, IComponentData
     {
-        // Destroy the voxel chunk singleton //
-        if (vcs.chunkToBuildQueue.IsCreated)
-            vcs.chunkToBuildQueue.Dispose();
-        if (vcs.chunkJobList.IsCreated)
+
+        EntityManager em = World.DefaultGameObjectInjectionWorld.EntityManager;
+
+        var query = em.CreateEntityQuery(ComponentType.ReadOnly<T>());
+        if (query.CalculateEntityCount() == 0)
         {
-            for (int i = vcs.chunkJobList.Length - 1; i >= 0; i--)
-            {
-                ChunkData chunkData = vcs.chunkJobList[i];
-                chunkData.job.Complete();
-                DisposeVCSAllNatives(chunkData);
-            }
-            vcs.chunkJobList.Dispose();
+            value = default;
+            return false;
         }
-    }
-
-    static public void DisposeVCSAllNatives(ChunkData chunkData)
-    {
-
-        // Dispose all tables //
-        NativesPool<int3>.ReleaseList(chunkData.frontier);
-        NativesPool<byte>.ReleaseArray(chunkData.floodVisited);
-        NativesPool<byte>.ReleaseArray(chunkData.linearFloodVisited);
-        NativesPool<BlockRender>.ReleaseArray(chunkData.blockRenders);
-        NativesPool<ChunkSquareFaces>.ReleaseList(chunkData.squareFaces);
+        var entity = query.GetSingletonEntity();
+        value = em.GetComponentData<T>(entity);
+        return true;
 
     }
 
@@ -58,6 +48,24 @@ public static class Utils
             (int)math.floor((float)chunkPos.x / regionSize),
             (int)math.floor((float)chunkPos.y / regionSize),
             (int)math.floor((float)chunkPos.z / regionSize)
+        );
+    }
+
+    public static int3 WorldPosToRegionCoord(float3 worldPos, int regionSizeInBlocks)
+    {
+        return new int3(
+            (int)math.floor(worldPos.x / regionSizeInBlocks),
+            (int)math.floor(worldPos.y / regionSizeInBlocks),
+            (int)math.floor(worldPos.z / regionSizeInBlocks)
+        );
+    }
+
+    public static float3 RegionCoordToWorldPos(float3 regionCoord, int regionSizeInBlocks)
+    {
+        return new float3(
+            math.floor(regionCoord.x * regionSizeInBlocks),
+            math.floor(regionCoord.y * regionSizeInBlocks),
+            math.floor(regionCoord.z * regionSizeInBlocks)
         );
     }
 

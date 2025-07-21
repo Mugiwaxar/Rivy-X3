@@ -4,13 +4,22 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
-using static UnityEditor.PlayerSettings;
-using static UpdateChunksVisibility;
-using static VoxelRaycast;
 
 public static class VoxelRaycast
 {
+    public struct RayCast
+    {
+        public float3 origin;
+        public float3 direction;
+        public float distance;
+    }
+
+    public struct ChunkHit
+    {
+        public Entity chunk;
+        public int3 position;
+        public int3 hitNormal;
+    }
 
     [BurstCompile]
     public struct RaycastJobParallel : IJobParallelFor

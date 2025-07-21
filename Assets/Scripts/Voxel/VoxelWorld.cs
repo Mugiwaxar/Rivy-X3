@@ -1,23 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering;
-using System.Collections.Generic;
-using System.Collections;
 using static Atlas;
-using static EnumData;
 using System;
 using Unity.Entities;
-using Unity.Collections;
-
-using Unity.Mathematics;
-using Unity.Burst;
 using System.Threading.Tasks;
 using Unity.Rendering;
-
-
-
-
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -47,9 +34,10 @@ public class VoxelWorld : MonoBehaviour
     public byte worldHeightInChunks = 8;
     public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
 
-    public int viewDistance = 100;
+    public int maxRegionDistance = 30;
+    public int nearRegionDistance = 20;
+    public int playerContactRegionDistance = 2;
     public int yViewDistance = 3;
-    public byte voxelRaysCount = 30;
 
     public int regionSize = 16;
     public int chunkSize = 16;
@@ -62,6 +50,7 @@ public class VoxelWorld : MonoBehaviour
     public bool doFacesOcclusion = true;
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
+    public bool removeFullAirChunk = true;
 
     [NonSerialized] public bool requestWorldInit = true;
 

@@ -11,17 +11,17 @@ public static class NativePoolsManager
 {
     public static void DisposeAll()
     {
-        NativesPool<int3>.DisposeAll();
-        NativesPool<byte>.DisposeAll();
-        NativesPool<BlockRender>.DisposeAll();
-        NativesPool<ChunkSquareFaces>.DisposeAll();
-        NativesPool<float3>.DisposeAll();
-        NativesPool<int>.DisposeAll();
-        NativesPool<float2>.DisposeAll();
+        NativesPoolManager<int3>.DisposeAll();
+        NativesPoolManager<byte>.DisposeAll();
+        NativesPoolManager<BlockRender>.DisposeAll();
+        NativesPoolManager<ChunkSquareFaces>.DisposeAll();
+        NativesPoolManager<float3>.DisposeAll();
+        NativesPoolManager<int>.DisposeAll();
+        NativesPoolManager<float2>.DisposeAll();
     }
 }
 
-public static class NativesPool<T> where T : unmanaged
+public static class NativesPoolManager<T> where T : unmanaged
 {
 
     private static int MaxArrayInStack = 1000;
