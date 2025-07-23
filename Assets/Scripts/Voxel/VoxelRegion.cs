@@ -127,8 +127,11 @@ public partial struct UpdateRegionsSystem : ISystem
         // Destroy all needed regions //
         foreach (RegionsInfo info in regionsToDestroy)
         {
-            DS.regionsMap.Remove(info.coord);
-            VoxelRegion.RemoveRegion(ref state, info.entity, ref DS);
+            if (DS.regionsMap.ContainsKey(info.coord))
+            {
+                DS.regionsMap.Remove(info.coord);
+                VoxelRegion.RemoveRegion(ref state, info.entity, ref DS);
+            }
         }
 
         // Dispose the list //
@@ -317,7 +320,24 @@ public static class VoxelRegion
         EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
         foreach (RegionChunks rchunk in buffer)
         {
-            int3 coord = state.EntityManager.GetComponentData<ChunkPosition>(rchunk.ChunkEntity).Value;
+
+            // Get the entity //
+            Entity chunkEnt = rchunk.ChunkEntity;
+
+            // Cancel any running job on this chunk //
+            for (int i = DS.chunkJobList.Length - 1; i >= 0; i--)
+            {
+                ChunkData cData = DS.chunkJobList[i];
+                if (cData.chunk == chunkEnt)
+                {
+                    cData.job.Complete();
+                    SingletonManager.DisposeVCSAllNatives(cData);
+                    DS.chunkJobList.RemoveAtSwapBack(i);
+                    break;
+                }
+            }
+
+            int3 coord = state.EntityManager.GetComponentData<ChunkPosition>(chunkEnt).Value;
             DS.chunksMap.Remove(coord);
             ecb.DestroyEntity(rchunk.ChunkEntity);
         }

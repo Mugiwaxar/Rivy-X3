@@ -70,6 +70,10 @@ public partial struct BuildMesh : ISystem
             // Get the entity //
             chunkData.chunk = DS.chunkToBuildQueue.Dequeue();
 
+            // Check if the entity still exist //
+            if (state.EntityManager.Exists(chunkData.chunk) == false)
+                continue;
+
             chunkData.frontier = NativesPoolManager<int3>.GetList(totalBlock);
             chunkData.floodVisited = NativesPoolManager<byte>.GetArray(totalBlock);
             chunkData.linearFloodVisited = NativesPoolManager<byte>.GetArray(totalBlock);
