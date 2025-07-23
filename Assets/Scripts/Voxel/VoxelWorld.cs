@@ -129,7 +129,7 @@ public class VoxelWorld : MonoBehaviour
 
     private void OnDestroy()
     {
-        NativePoolsManager.DisposeAll();
+        NativePoolManager.DisposeAll();
         MeshPoolManager.DisposeAll();
     }
 

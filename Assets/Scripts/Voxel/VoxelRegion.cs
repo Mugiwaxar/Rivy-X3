@@ -33,6 +33,18 @@ public struct RegionsInfo
 public partial struct PopulateRegionSystem : ISystem
 {
 
+    NativeQueue<Entity> nativeQueueJob;
+
+    public void OnCreate(ref SystemState state)
+    {
+        this.nativeQueueJob = new NativeQueue<Entity>(Allocator.Persistent);
+    }
+
+    public void OnDestroy(ref SystemState state)
+    {
+        this.nativeQueueJob.Dispose();
+    }
+
     public void OnUpdate(ref SystemState state)
     {
 
@@ -40,27 +52,37 @@ public partial struct PopulateRegionSystem : ISystem
         if (SystemAPI.TryGetSingleton<DataSingleton>(out DataSingleton DS) == false) return;
         if (SystemAPI.TryGetSingleton<WorldSettings>(out WorldSettings WS) == false) return;
 
-        // Create the entity command buffer //
-        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
-
         // Get all regions that need to populate with chunks //
-        foreach ((var _, var coord, Entity regionEntity) in SystemAPI.Query<RefRO<RegionNeedChunks>, RefRO<RegionCoord>>().WithEntityAccess())
+        foreach ((var _, Entity regionEntity) in SystemAPI.Query<RefRO<RegionNeedChunks>>().WithEntityAccess())
         {
 
             // Disable the need chunks //
             SystemAPI.SetComponentEnabled<RegionNeedChunks>(regionEntity, false);
 
+            // Add the entity to the queue //
+            this.nativeQueueJob.Enqueue(regionEntity);
+
+
+
+        }
+
+        // Populate regions one by one //
+        if (this.nativeQueueJob.Count > 0)
+        {
+            
+            // Get the region //
+            Entity regionEntity = nativeQueueJob.Dequeue();
+
+            // Get the coord //
+            int3 coord = state.EntityManager.GetComponentData<RegionCoord>(regionEntity).Value;
+
             // Get the chunks buffer //
             DynamicBuffer<RegionChunks> chunksBuffer = SystemAPI.GetBuffer<RegionChunks>(regionEntity);
 
             // Create all chunks //
-            ChunksManager.GenerateAllChunksInRegion(ref state, coord.ValueRO.Value, WS, DS, chunksBuffer, ref ecb);
+            ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer, WS.regionSize * WS.regionSize * WS.regionSize);
 
         }
-
-        // Apply the entity commande buffer //
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
 
     }
 

@@ -12,69 +12,71 @@ using static Atlas;
 
 static public partial class ChunksGenerator
 {
-    public static Entity CreateChunk(ref SystemState state, int3 position, int chunkSize, bool removeFullAirChunk, ref EntityCommandBuffer ecb)
+    public static bool CreateChunk(ref SystemState state, int3 position, Entity chunk, int chunkSize, bool removeFullAirChunk)
     {
 
-        // Create the entity //
-        Entity chunk = ecb.CreateEntity();
+        //// Create the entity //
+        //Entity chunk = ecb.CreateEntity();
 
-        // Add the position components //
-        ecb.AddComponent(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
+        //// Add the position components //
+        //ecb.AddComponent(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
 
-        // Add the local transform //
-        float3 worldPos = position * chunkSize;
-        ecb.AddComponent(chunk, LocalTransform.FromPosition(worldPos));
+        //// Add the local transform //
+        //float3 worldPos = position * chunkSize;
+        //ecb.AddComponent(chunk, LocalTransform.FromPosition(worldPos));
 
-        // Add all enableable Components //
-        ecb.AddComponent<ChunkNeedBlocks>(chunk);
-        ecb.AddComponent<ChunkNeedRender>(chunk);
-        ecb.SetComponentEnabled<ChunkNeedRender>(chunk, false);
+        //// Add all enableable Components //
+        //ecb.AddComponent<ChunkNeedBlocks>(chunk);
+        //ecb.AddComponent<ChunkNeedRender>(chunk);
+        //ecb.SetComponentEnabled<ChunkNeedRender>(chunk, false);
 
-        // Create the buffers //
-        ecb.AddBuffer<BlockData>(chunk);
-        ecb.AddBuffer<ChunkSquareFaces>(chunk);
+        //// Create the buffers //
+        //ecb.AddBuffer<BlockData>(chunk);
+        //ecb.AddBuffer<ChunkSquareFaces>(chunk);
 
-        //// Re-acquire the buffers after all structural changes
-        //DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
-        //DynamicBuffer<ChunkSquareFaces> squares = entityManager.GetBuffer<ChunkSquareFaces>(chunk);
+        // Get the entity manager //
+        EntityManager entityManager = state.EntityManager;
 
-        //// Check the buffers length //
-        //int total = chunkSize * chunkSize * chunkSize;
-        //if (blocks.Length < total) blocks.ResizeUninitialized(total);
-        //if (squares.Length < total) squares.ResizeUninitialized(total);
-        //squares.Clear();
+        // Get the buffers //
+        DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
+        DynamicBuffer<ChunkSquareFaces> squares = entityManager.GetBuffer<ChunkSquareFaces>(chunk);
 
-        //// Full air chunk, don't create //
-        //bool fullAir = true;
+        // Check the buffers length //
+        int total = chunkSize * chunkSize * chunkSize;
+        if (blocks.Length < total) blocks.ResizeUninitialized(total);
+        if (squares.Length < total) squares.ResizeUninitialized(total);
+        squares.Clear();
 
-        //// Fill the chunk table with all blocks //
-        //for (int x = 0; x < chunkSize; x++)
-        //{
-        //    for (int y = 0; y < chunkSize; y++)
-        //    {
-        //        for (int z = 0; z < chunkSize; z++)
-        //        {
-        //            int yRealPos = position.y * chunkSize + y;
-        //            if (yRealPos > 20)
-        //            {
-        //                blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)0, true);
-        //            }
-        //            else
-        //            {
-        //                blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)1);
-        //                fullAir = false;
-        //            }
-        //        }
-        //    }
-        //}
+        // Full air chunk, don't create //
+        bool fullAir = true;
 
-        //if (fullAir == true && removeFullAirChunk == true)
-        //{
-        //    entityManager.DestroyEntity(chunk);
-        //    return Entity.Null;
-        //}
+        // Fill the chunk table with all blocks //
+        for (int x = 0; x < chunkSize; x++)
+        {
+            for (int y = 0; y < chunkSize; y++)
+            {
+                for (int z = 0; z < chunkSize; z++)
+                {
+                    int yRealPos = position.y * chunkSize + y;
+                    if (yRealPos > 20)
+                    {
+                        blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)0, true);
+                    }
+                    else
+                    {
+                        blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)1);
+                        fullAir = false;
+                    }
+                }
+            }
+        }
 
-        return chunk;
+        // Check if full air //
+        if (fullAir == true && removeFullAirChunk == true)
+            return false;
+
+        // Return //
+        return true;
 
     }
 

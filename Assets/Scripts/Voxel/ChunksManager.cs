@@ -1,6 +1,8 @@
-﻿using Unity.Collections;
+﻿using Assets.Scripts.Block;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 using static EnumData;
 
@@ -105,17 +107,42 @@ public class ChunksManager : MonoBehaviour
 
     }
 
-    public static void GenerateAllChunksInRegion(ref SystemState state, int3 regionCoord, WorldSettings WS, DataSingleton DS, DynamicBuffer<RegionChunks> buffer, ref EntityCommandBuffer ecb)
+    public static void GenerateAllChunksInRegion(ref SystemState state, int3 regionCoord, WorldSettings WS, DataSingleton DS, DynamicBuffer<RegionChunks> buffer, int chunksCount)
     {
+
+        // Create the chunk archetype //
+        EntityArchetype archetype = state.EntityManager.CreateArchetype(typeof(ChunkPosition), typeof(LocalTransform), typeof(ChunkNeedBlocks), typeof(ChunkNeedRender), typeof(BlockData), typeof(ChunkSquareFaces));
+
+        // Create all chunks //
+        NativeArray<Entity> chunkArray = NativesPoolManager<Entity>.GetArray(chunksCount);
+        state.EntityManager.CreateEntity(archetype, chunkArray);
+
+        // Set all entities //
+        int i = 0;
+        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
         for (int cx = 0; cx < WS.regionSize; cx++)
             for (int cy = 0; cy < WS.regionSize; cy++)
                 for (int cz = 0; cz < WS.regionSize; cz++)
                 {
+                    Entity chunkEntity = chunkArray[i];
                     int3 chunkCoord = regionCoord * WS.regionSize + new int3(cx, cy, cz);
-                    Entity chunkEntity = ChunksGenerator.CreateChunk(ref state, chunkCoord, WS.regionSize, WS.removeFullAirChunk, ref ecb);
+                    if (ChunksGenerator.CreateChunk(ref state, chunkCoord, chunkEntity, WS.regionSize, WS.removeFullAirChunk) == false)
+                    {
+                        ecb.DestroyEntity(chunkEntity);
+                        continue;
+                    }
                     DS.chunksMap.Add(chunkCoord, chunkEntity);
                     buffer.Add(new RegionChunks { ChunkEntity = chunkEntity });
+                    i++;
                 }
+
+        // Playback the entity command buffer //
+        ecb.Playback(state.EntityManager);
+
+        // Dispose the tables //
+        ecb.Dispose();
+        NativesPoolManager<Entity>.ReleaseArray(chunkArray);
+
     }
 
     public static Entity GetChunk(NativeParallelHashMap<int3, Entity> chunksMap, int x, int y, int z, Direction direction = Direction.None)

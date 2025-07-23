@@ -1,6 +1,7 @@
 using Assets.Scripts.Block;
 using System;
 using TMPro;
+using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -23,6 +24,7 @@ public class NativePoolHUD : MonoBehaviour
             text += NativesPoolManager<float3>.GetStats() + Environment.NewLine;
             text += NativesPoolManager<int>.GetStats() + Environment.NewLine;
             text += NativesPoolManager<float2>.GetStats() + Environment.NewLine;
+            text += NativesPoolManager<Entity>.GetStats() + Environment.NewLine;
             text += MeshPoolManager.GetStats() + Environment.NewLine + Environment.NewLine;
 
             this.GetComponent<TextMeshProUGUI>().text = text;

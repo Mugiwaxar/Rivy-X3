@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Text;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-public static class NativePoolsManager
+public static class NativePoolManager
 {
     public static void DisposeAll()
     {
@@ -18,6 +19,7 @@ public static class NativePoolsManager
         NativesPoolManager<float3>.DisposeAll();
         NativesPoolManager<int>.DisposeAll();
         NativesPoolManager<float2>.DisposeAll();
+        NativesPoolManager<Entity>.DisposeAll();
     }
 }
 
