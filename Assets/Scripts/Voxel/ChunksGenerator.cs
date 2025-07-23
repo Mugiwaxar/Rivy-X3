@@ -114,8 +114,10 @@ static public partial class ChunksGenerator
         public void Execute()
         {
 
-            // Get current chunks //
+            // Get current chunk and ensure it has a valid buffer //
             Entity chunkEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.None);
+            if (chunkEntity == Entity.Null || this.blocksLookup.HasBuffer(chunkEntity) == false)
+                return;
             this.currentChunk = this.blocksLookup[chunkEntity];
 
             // Get the settings //

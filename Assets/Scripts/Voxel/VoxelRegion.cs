@@ -324,6 +324,11 @@ public static class VoxelRegion
             // Get the entity //
             Entity chunkEnt = rchunk.ChunkEntity;
 
+
+            // Continue if the chunk doesn't exist //
+            if (state.EntityManager.Exists(chunkEnt) == false)
+                continue;
+
             // Cancel any running job on this chunk //
             for (int i = DS.chunkJobList.Length - 1; i >= 0; i--)
             {
