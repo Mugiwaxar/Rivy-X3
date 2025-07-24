@@ -614,13 +614,13 @@ MonoBehaviour:
   atlasTexture: {fileID: 2800000, guid: 9b669b78c1cdef74aa45b8e3e5e5a166, type: 3}
   worldSizeInChunks: 50
   worldHeightInChunks: 10
-  maxRegionDistance: 3
-  nearRegionDistance: 2
-  playerContactRegionDistance: 1
+  maxRegionDistance: 0
+  nearRegionDistance: 0
+  playerContactRegionDistance: 0
   yViewDistance: 0
-  regionSize: 8
-  chunkSize: 16
-  chunkInitListSize: 16
+  regionSize: 4
+  chunkSize: 8
+  chunkInitListSize: 8
   doFloodFill: 1
   doLinearFloodFill: 1
   doFacesOcclusion: 1
@@ -634,7 +634,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1280987761}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d97fa8174f55ee45b943946560be097, type: 3}
   m_Name: 

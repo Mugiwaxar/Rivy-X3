@@ -72,15 +72,19 @@ public partial struct PopulateRegionSystem : ISystem
             
             // Get the region //
             Entity regionEntity = nativeQueueJob.Dequeue();
+            
+            // Check if the region still exist //
+            if (state.EntityManager.Exists(regionEntity) == true)
+            {
+                // Get the coord //
+                int3 coord = state.EntityManager.GetComponentData<RegionCoord>(regionEntity).Value;
 
-            // Get the coord //
-            int3 coord = state.EntityManager.GetComponentData<RegionCoord>(regionEntity).Value;
+                // Get the chunks buffer //
+                DynamicBuffer<RegionChunks> chunksBuffer = SystemAPI.GetBuffer<RegionChunks>(regionEntity);
 
-            // Get the chunks buffer //
-            DynamicBuffer<RegionChunks> chunksBuffer = SystemAPI.GetBuffer<RegionChunks>(regionEntity);
-
-            // Create all chunks //
-            ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer, WS.regionSize * WS.regionSize * WS.regionSize);
+                // Create all chunks //
+                ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer, WS.regionSize * WS.regionSize * WS.regionSize);
+            }
 
         }
 
@@ -338,7 +342,6 @@ public static class VoxelRegion
                     cData.job.Complete();
                     SingletonManager.DisposeVCSAllNatives(cData);
                     DS.chunkJobList.RemoveAtSwapBack(i);
-                    break;
                 }
             }
 

@@ -54,6 +54,8 @@ public class VoxelWorld : MonoBehaviour
 
     [NonSerialized] public bool requestWorldInit = true;
 
+    [NonSerialized] public bool MustUpdateSingleton = false;
+
     [NonSerialized] public ChunksManager ChunkSManager;
 
     [NonSerialized] public BatchMaterialID MaterialID;
@@ -131,6 +133,12 @@ public class VoxelWorld : MonoBehaviour
     {
         NativePoolManager.DisposeAll();
         MeshPoolManager.DisposeAll();
+    }
+
+    private void OnValidate()
+    {
+        // Update the settings singleton //
+        this.MustUpdateSingleton = true;
     }
 
 }

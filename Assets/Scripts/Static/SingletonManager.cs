@@ -64,37 +64,15 @@ public partial struct SingletonManager : ISystem
 
         // Create the settings singleton //
         Entity WSEntity = state.EntityManager.CreateEntity();
-        state.EntityManager.AddComponentData(WSEntity, new WorldSettings
-        {
-            worldSizeInChunks = world.worldSizeInChunks,
-            worldHeightInChunks = world.worldHeightInChunks,
-            worldTotalSizeInChunks = world.worldTotalSizeInChunk,
-
-            regionSize = world.regionSize,
-            chunkSize = world.chunkSize,
-            chunkBlocksCount = world.chunkBlocksCount,
-            chunkInitListSize = world.chunkInitListSize,
-
-            maxRegionDistance = world.maxRegionDistance,
-            nearRegionDistance = world.nearRegionDistance,
-            playerContactRegionDistance = world.playerContactRegionDistance,
-            yViewDistance = world.yViewDistance,
-
-
-            doFloodFill = world.doFloodFill,
-            doLinearFloodFill = world.doLinearFloodFill,
-            doFacesOcclusion = world.doFacesOcclusion,
-            doGreedyMeshing = world.doGreedyMeshing,
-            doFaceNormalCheck = world.doFaceNormalCheck,
-            removeFullAirChunk = world.removeFullAirChunk
-        });
+        state.EntityManager.AddComponentData(WSEntity, new WorldSettings{});
+        this.UpdateSettingsSingleton();
 
         // Create data singleton //
         Entity WDEntity = state.EntityManager.CreateEntity();
         state.EntityManager.AddComponentData(WDEntity, new DataSingleton
         {
-            chunksMap = new NativeParallelHashMap<int3, Entity>(VoxelWorld._Instance.worldTotalSizeInChunk, Allocator.Persistent),
-            regionsMap = new NativeParallelHashMap<int3, Entity>(VoxelWorld._Instance.worldTotalSizeInChunk, Allocator.Persistent),
+            chunksMap = new NativeParallelHashMap<int3, Entity>(world.worldTotalSizeInChunk, Allocator.Persistent),
+            regionsMap = new NativeParallelHashMap<int3, Entity>(world.worldTotalSizeInChunk, Allocator.Persistent),
             chunkToBuildQueue = new NativeQueue<Entity>(Allocator.Persistent),
             chunkJobList = new NativeList<ChunkData>(Allocator.Persistent),
             matID = world.MaterialID
@@ -123,6 +101,52 @@ public partial struct SingletonManager : ISystem
         // Kill all pools //
         NativePoolManager.DisposeAll();
         MeshPoolManager.DisposeAll();
+
+    }
+
+    public void OnUpdate(ref SystemState state)
+    {
+
+        // Update the setting singleton //
+        if (VoxelWorld._Instance.MustUpdateSingleton == true)
+        {
+            this.UpdateSettingsSingleton();
+            VoxelWorld._Instance.MustUpdateSingleton = false;
+        }
+
+    }
+
+    public void UpdateSettingsSingleton()
+    {
+
+        VoxelWorld world = VoxelWorld._Instance;
+
+        SystemAPI.SetSingleton<WorldSettings>(new WorldSettings()
+        {
+
+            worldSizeInChunks = world.worldSizeInChunks,
+            worldHeightInChunks = world.worldHeightInChunks,
+            worldTotalSizeInChunks = world.worldTotalSizeInChunk,
+
+            regionSize = world.regionSize,
+            chunkSize = world.chunkSize,
+            chunkBlocksCount = world.chunkBlocksCount,
+            chunkInitListSize = world.chunkInitListSize,
+
+            maxRegionDistance = world.maxRegionDistance,
+            nearRegionDistance = world.nearRegionDistance,
+            playerContactRegionDistance = world.playerContactRegionDistance,
+            yViewDistance = world.yViewDistance,
+
+
+            doFloodFill = world.doFloodFill,
+            doLinearFloodFill = world.doLinearFloodFill,
+            doFacesOcclusion = world.doFacesOcclusion,
+            doGreedyMeshing = world.doGreedyMeshing,
+            doFaceNormalCheck = world.doFaceNormalCheck,
+            removeFullAirChunk = world.removeFullAirChunk
+
+        });
 
     }
 
