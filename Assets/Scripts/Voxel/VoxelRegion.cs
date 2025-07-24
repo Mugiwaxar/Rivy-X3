@@ -350,6 +350,10 @@ public static class VoxelRegion
             ecb.DestroyEntity(rchunk.ChunkEntity);
         }
 
+        // Playback the command buffer to remove chunks //
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose();
+
         // Remove the entity //
         state.EntityManager.DestroyEntity(regionEntity);
             
