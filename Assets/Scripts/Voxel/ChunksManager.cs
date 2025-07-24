@@ -131,10 +131,17 @@ public class ChunksManager : MonoBehaviour
                         ecb.DestroyEntity(chunkEntity);
                         continue;
                     }
-                    if (DS.chunksMap.TryAdd(chunkCoord, chunkEntity))
-                        buffer.Add(new RegionChunks { ChunkEntity = chunkEntity });
-                    else
-                        ecb.DestroyEntity(chunkEntity);
+
+                    if (DS.chunksMap.ContainsKey(chunkCoord) == true)
+                    {
+                        Entity entityToDestroy = DS.chunksMap[chunkCoord];
+                        ecb.DestroyEntity(entityToDestroy);
+                        DS.chunksMap.Remove(chunkCoord);
+                    }
+
+                    DS.chunksMap.Add(chunkCoord, chunkEntity);
+                    buffer.Add(new RegionChunks { ChunkEntity = chunkEntity });
+
                     i++;
                 }
 

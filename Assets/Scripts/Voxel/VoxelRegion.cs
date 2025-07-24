@@ -15,7 +15,7 @@ using static UnityEngine.EventSystems.EventTrigger;
 using static UnityEngine.Rendering.HighDefinition.ScalableSettingLevelParameter;
 
 public struct RegionCoord : IComponentData { public int3 Value; }
-public struct RegionChunks : IBufferElementData { public Entity ChunkEntity; }
+public struct RegionChunks : IBufferElementData { public Entity ChunkEntity; public int3 ChunkCoord; }
 public struct RegionLOD : IComponentData { public LODLevel Level; }
 public struct RegionNeedChunks : IComponentData, IEnableableComponent { }
 public struct RegionNeedRender : IComponentData, IEnableableComponent { }
@@ -322,14 +322,18 @@ public static class VoxelRegion
         // Remove all chunks in the region //
         DynamicBuffer<RegionChunks> buffer = state.EntityManager.GetBuffer<RegionChunks>(regionEntity);
         NativeList<Entity> entityToDestroy = NativesPoolManager<Entity>.GetList(WS.chunkSize * WS.chunkSize * WS.chunkSize);
+
         foreach (RegionChunks rchunk in buffer)
         {
 
             // Get the entity //
             Entity chunkEnt = rchunk.ChunkEntity;
+            int3 coord = rchunk.ChunkCoord;
 
+            // Remove from the map even if the entity no longer exists //
+            DS.chunksMap.Remove(coord);
 
-            // Continue if the chunk doesn't exist //
+            // Skip if chunk entity is already destroyed //
             if (state.EntityManager.Exists(chunkEnt) == false)
                 continue;
 
@@ -345,18 +349,17 @@ public static class VoxelRegion
                 }
             }
 
-            int3 coord = state.EntityManager.GetComponentData<ChunkPosition>(chunkEnt).Value;
-            DS.chunksMap.Remove(coord);
+            // Ask to remove //
             entityToDestroy.AddNoResize(chunkEnt);
         }
 
         // Remove all chunks //
+        buffer.Clear();
         foreach (Entity entityChunk in entityToDestroy)
             state.EntityManager.DestroyEntity(entityChunk);
         NativesPoolManager<Entity>.ReleaseList(entityToDestroy);
 
         // Remove the Region //
-        buffer.Clear();
         state.EntityManager.DestroyEntity(regionEntity);
             
     }
