@@ -134,7 +134,7 @@ public partial struct UpdateRegionsSystem : ISystem
             if (DS.regionsMap.ContainsKey(info.coord))
             {
                 DS.regionsMap.Remove(info.coord);
-                VoxelRegion.RemoveRegion(ref state, info.entity, ref DS);
+                VoxelRegion.RemoveRegion(ref state, info.entity, ref DS, ref WS);
             }
         }
 
@@ -310,7 +310,7 @@ public static class VoxelRegion
 
     }
 
-    public static void RemoveRegion(ref SystemState state, Entity regionEntity, ref DataSingleton DS)
+    public static void RemoveRegion(ref SystemState state, Entity regionEntity, ref DataSingleton DS, ref WorldSettings WS)
     {
 
         // Get the coord //
@@ -321,7 +321,7 @@ public static class VoxelRegion
 
         // Remove all chunks in the region //
         DynamicBuffer<RegionChunks> buffer = state.EntityManager.GetBuffer<RegionChunks>(regionEntity);
-        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
+        NativeList<Entity> entityToDestroy = NativesPoolManager<Entity>.GetList(WS.chunkSize * WS.chunkSize * WS.chunkSize);
         foreach (RegionChunks rchunk in buffer)
         {
 
@@ -347,14 +347,16 @@ public static class VoxelRegion
 
             int3 coord = state.EntityManager.GetComponentData<ChunkPosition>(chunkEnt).Value;
             DS.chunksMap.Remove(coord);
-            ecb.DestroyEntity(rchunk.ChunkEntity);
+            entityToDestroy.AddNoResize(chunkEnt);
         }
 
-        // Playback the command buffer to remove chunks //
-        ecb.Playback(state.EntityManager);
-        ecb.Dispose();
+        // Remove all chunks //
+        foreach (Entity entityChunk in entityToDestroy)
+            state.EntityManager.DestroyEntity(entityChunk);
+        NativesPoolManager<Entity>.ReleaseList(entityToDestroy);
 
-        // Remove the entity //
+        // Remove the Region //
+        buffer.Clear();
         state.EntityManager.DestroyEntity(regionEntity);
             
     }

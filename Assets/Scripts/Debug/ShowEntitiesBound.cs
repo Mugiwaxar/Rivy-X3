@@ -108,10 +108,10 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
 
         if (showAllChunks == true)
         {
-            var cunksEntries = DS.chunksMap.GetKeyValueArrays(Allocator.Temp);
-            for (int i = 0; i < cunksEntries.Length; i++)
+            var chunksEntries = DS.chunksMap.GetKeyValueArrays(Allocator.Temp);
+            for (int i = 0; i < chunksEntries.Length; i++)
             {
-                int3 pos = cunksEntries.Keys[i];
+                int3 pos = chunksEntries.Keys[i];
                 Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
             }
         }
