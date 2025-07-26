@@ -125,24 +125,23 @@ public class ChunksManager : MonoBehaviour
                 for (int cz = 0; cz < WS.regionSize; cz++)
                 {
                     Entity chunkEntity = chunkArray[i];
+                    i++;
                     int3 chunkCoord = regionCoord * WS.regionSize + new int3(cx, cy, cz);
                     if (ChunksGenerator.CreateChunk(ref state, chunkCoord, chunkEntity, WS.chunkSize, WS.removeFullAirChunk) == false)
                     {
-                        destroyList.AddNoResize(chunkEntity);
+                        destroyList.Add(chunkEntity);
                         continue;
                     }
 
                     if (DS.chunksMap.ContainsKey(chunkCoord) == true)
                     {
                         Entity entityToDestroy = DS.chunksMap[chunkCoord];
-                        destroyList.AddNoResize(chunkEntity);
+                        destroyList.Add(entityToDestroy);
                         DS.chunksMap.Remove(chunkCoord);
                     }
 
                     DS.chunksMap.Add(chunkCoord, chunkEntity);
                     buffer.Add(new RegionChunks { ChunkEntity = chunkEntity, ChunkCoord = chunkCoord });
-
-                    i++;
                 }
 
         // Destroy all full air chunks //

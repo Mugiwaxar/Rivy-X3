@@ -15,27 +15,19 @@ static public partial class ChunksGenerator
     public static bool CreateChunk(ref SystemState state, int3 position, Entity chunk, int chunkSize, bool removeFullAirChunk)
     {
 
-        //// Create the entity //
-        //Entity chunk = ecb.CreateEntity();
-
-        //// Add the position components //
-        //ecb.AddComponent(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
-
-        //// Add the local transform //
-        //float3 worldPos = position * chunkSize;
-        //ecb.AddComponent(chunk, LocalTransform.FromPosition(worldPos));
-
-        //// Add all enableable Components //
-        //ecb.AddComponent<ChunkNeedBlocks>(chunk);
-        //ecb.AddComponent<ChunkNeedRender>(chunk);
-        //ecb.SetComponentEnabled<ChunkNeedRender>(chunk, false);
-
-        //// Create the buffers //
-        //ecb.AddBuffer<BlockData>(chunk);
-        //ecb.AddBuffer<ChunkSquareFaces>(chunk);
-
         // Get the entity manager //
         EntityManager entityManager = state.EntityManager;
+
+        // Set the position components //
+        entityManager.SetComponentData<ChunkPosition>(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
+
+        // Set the local transform //
+        float3 worldPos = position * chunkSize;
+        entityManager.SetComponentData<LocalTransform>(chunk, LocalTransform.FromPosition(worldPos));
+
+        // Set all enableable Components //
+        entityManager.SetComponentEnabled<ChunkNeedBlocks>(chunk, true);
+        entityManager.SetComponentEnabled<ChunkNeedRender>(chunk, true);
 
         // Get the buffers //
         DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
@@ -74,9 +66,6 @@ static public partial class ChunksGenerator
         // Check if full air //
         if (fullAir == true && removeFullAirChunk == true)
             return false;
-
-        // Ask to render //
-        //entityManager.SetComponentEnabled<ChunkNeedRender>(chunk, false);
 
         // Return //
         return true;
