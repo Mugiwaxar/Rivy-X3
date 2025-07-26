@@ -175,9 +175,10 @@ public partial struct RegionManagerSystem : ISystem
                     int3 regionCoord = playerCoord + new int3(dx, dy, dz);
 
                     // Get the distance //
-                    int distance = math.abs(regionCoord.x - playerCoord.x)
-                        + math.abs(regionCoord.y - playerCoord.y)
-                        + math.abs(regionCoord.z - playerCoord.z);
+                    int adx = math.abs(regionCoord.x - playerCoord.x);
+                    int ady = math.abs(regionCoord.y - playerCoord.y);
+                    int adz = math.abs(regionCoord.z - playerCoord.z);
+                    int distance = math.max(math.max(adx, ady), adz);
 
                     // Get the wanted LOD //
                     LODLevel level = LODLevel.TooFar;
