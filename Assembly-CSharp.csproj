@@ -73,26 +73,26 @@
     <Analyzer Include="C:\Users\User\Bureau\Rivy X3\Library\PackageCache\com.unity.entities@e581b903be8e\Unity.Entities\SourceGenerators\Unity.Entities.Analyzer.CodeFixes.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Voxel\VoxelWorld.cs" />
-    <Compile Include="Assets\Scripts\Static\VoxelRaycast.cs" />
-    <Compile Include="Assets\Scripts\Static\Utils.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelRegion.cs" />
-    <Compile Include="Assets\Scripts\Block\ChunkSquareFaces.cs" />
-    <Compile Include="Assets\Scripts\Debug\NativePoolHUD.cs" />
-    <Compile Include="Assets\Scripts\Block\BlockData.cs" />
-    <Compile Include="Assets\Scripts\Static\NativesPoolManager.cs" />
-    <Compile Include="Assets\Scripts\Player\SimpleCamera.cs" />
-    <Compile Include="Assets\Scripts\Static\Atlas.cs" />
-    <Compile Include="Assets\Scripts\Voxel\ChunksGenerator.cs" />
-    <Compile Include="Assets\Scripts\Static\SingletonManager.cs" />
-    <Compile Include="Assets\Scripts\Block\BlockRender.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelChunk.cs" />
-    <Compile Include="Assets\Scripts\Voxel\ChunksManager.cs" />
-    <Compile Include="Assets\Scripts\Debug\ShowEntitiesBound.cs" />
-    <Compile Include="Assets\Scripts\Static\MeshPoolManager.cs" />
-    <Compile Include="Assets\Scripts\Debug\HudTextDebug.cs" />
-    <Compile Include="Assets\Scripts\Debug\VoxelCountHUD.cs" />
-    <Compile Include="Assets\Scripts\Static\EnumData.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\Atlas.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Block\ChunkSquareFaces.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\EnumData.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\SingletonManager.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\MeshPoolManager.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Player\SimpleCamera.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Debug\NativePoolHUD.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Block\BlockData.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Debug\HudTextDebug.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Voxel\ChunksManager.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Debug\VoxelCountHUD.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Block\BlockRender.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\VoxelRaycast.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Debug\ShowEntitiesBound.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Voxel\VoxelChunk.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Voxel\VoxelRegion.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Voxel\ChunksGenerator.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Voxel\VoxelWorld.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\Utils.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\NativesPoolManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

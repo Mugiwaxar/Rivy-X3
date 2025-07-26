@@ -75,6 +75,9 @@ static public partial class ChunksGenerator
         if (fullAir == true && removeFullAirChunk == true)
             return false;
 
+        // Ask to render //
+        //entityManager.SetComponentEnabled<ChunkNeedRender>(chunk, false);
+
         // Return //
         return true;
 

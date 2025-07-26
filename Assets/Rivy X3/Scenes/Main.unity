@@ -618,9 +618,9 @@ MonoBehaviour:
   nearRegionDistance: 0
   playerContactRegionDistance: 0
   yViewDistance: 0
-  regionSize: 4
-  chunkSize: 8
-  chunkInitListSize: 8
+  regionSize: 8
+  chunkSize: 16
+  chunkInitListSize: 16
   doFloodFill: 1
   doLinearFloodFill: 1
   doFacesOcclusion: 1
@@ -639,10 +639,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d97fa8174f55ee45b943946560be097, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showAllBound: 1
+  showAllBound: 0
   showAllCubes: 0
-  showAllChunks: 0
-  showAllRegion: 0
+  showAllChunks: 1
+  showAllRegion: 1
 --- !u!1 &1400815452
 GameObject:
   m_ObjectHideFlags: 0

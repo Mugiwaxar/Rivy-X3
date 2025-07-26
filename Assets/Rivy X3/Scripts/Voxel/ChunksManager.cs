@@ -119,7 +119,7 @@ public class ChunksManager : MonoBehaviour
 
         // Set all entities //
         int i = 0;
-        EntityCommandBuffer ecb = new EntityCommandBuffer(Allocator.Temp);
+        NativeList<Entity> destroyList = NativesPoolManager<Entity>.GetList(chunksCount);
         for (int cx = 0; cx < WS.regionSize; cx++)
             for (int cy = 0; cy < WS.regionSize; cy++)
                 for (int cz = 0; cz < WS.regionSize; cz++)
@@ -128,29 +128,30 @@ public class ChunksManager : MonoBehaviour
                     int3 chunkCoord = regionCoord * WS.regionSize + new int3(cx, cy, cz);
                     if (ChunksGenerator.CreateChunk(ref state, chunkCoord, chunkEntity, WS.chunkSize, WS.removeFullAirChunk) == false)
                     {
-                        ecb.DestroyEntity(chunkEntity);
+                        destroyList.AddNoResize(chunkEntity);
                         continue;
                     }
 
                     if (DS.chunksMap.ContainsKey(chunkCoord) == true)
                     {
                         Entity entityToDestroy = DS.chunksMap[chunkCoord];
-                        ecb.DestroyEntity(entityToDestroy);
+                        destroyList.AddNoResize(chunkEntity);
                         DS.chunksMap.Remove(chunkCoord);
                     }
 
                     DS.chunksMap.Add(chunkCoord, chunkEntity);
-                    buffer.Add(new RegionChunks { ChunkEntity = chunkEntity });
+                    buffer.Add(new RegionChunks { ChunkEntity = chunkEntity, ChunkCoord = chunkCoord });
 
                     i++;
                 }
 
-        // Playback the entity command buffer //
-        ecb.Playback(state.EntityManager);
+        // Destroy all full air chunks //
+        for (int d = destroyList.Length - 1; d >= 0; d--)
+            state.EntityManager.DestroyEntity(destroyList[d]);
 
         // Dispose the tables //
-        ecb.Dispose();
         NativesPoolManager<Entity>.ReleaseArray(chunkArray);
+        NativesPoolManager<Entity>.ReleaseList(destroyList);
 
     }
 
