@@ -3,7 +3,6 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.LightTransport;
 using UnityEngine.Rendering;
 using static EnumData;
 

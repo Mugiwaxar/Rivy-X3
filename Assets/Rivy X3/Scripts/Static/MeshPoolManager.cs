@@ -57,15 +57,24 @@ public static class MeshPoolManager
 
     public static void ReleaseSavedMesh(int3 coord)
     {
-        if (UsedMesh.TryGetValue(coord, out Mesh mesh) == true)
+        if (UsedMesh.TryGetValue(coord, out Mesh mesh))
+        {
             ReleaseMesh(mesh);
+            UsedMesh.Remove(coord);
+        }
     }
 
     public static void DisposeAll()
     {
+
         foreach (var mesh in Pool)
             Object.Destroy(mesh);
         Pool.Clear();
+
+        foreach (var mesh in UsedMesh.Values)
+            Object.Destroy(mesh);
+        UsedMesh.Clear();
+
     }
 
     public static string GetStats()

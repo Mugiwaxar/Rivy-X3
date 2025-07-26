@@ -167,7 +167,7 @@ public partial struct RegionManagerSystem : ISystem
 
         // Check all regions around //
         for (int dx = -WS.maxRegionDistance; dx <= WS.maxRegionDistance; dx++)
-            for (int dy = -WS.maxRegionDistance; dy <= WS.maxRegionDistance; dy++)
+            for (int dy = -WS.yViewDistance; dy <= WS.yViewDistance; dy++)
                 for (int dz = -WS.maxRegionDistance; dz <= WS.maxRegionDistance; dz++)
                 {
 
@@ -178,10 +178,6 @@ public partial struct RegionManagerSystem : ISystem
                     int distance = math.abs(regionCoord.x - playerCoord.x)
                         + math.abs(regionCoord.y - playerCoord.y)
                         + math.abs(regionCoord.z - playerCoord.z);
-
-                    // Continue if too far //
-                    if (distance > WS.maxRegionDistance)
-                        continue;
 
                     // Get the wanted LOD //
                     LODLevel level = LODLevel.TooFar;
@@ -214,13 +210,10 @@ public partial struct RegionManagerSystem : ISystem
         foreach ((RefRO<RegionCoord> coord, Entity entity) in SystemAPI.Query<RefRO<RegionCoord>>().WithEntityAccess())
         {
 
-            // Get the distance //
-            int distance = math.abs(coord.ValueRO.Value.x - playerCoord.x)
-                + math.abs(coord.ValueRO.Value.y - playerCoord.y)
-                + math.abs(coord.ValueRO.Value.z - playerCoord.z);
-
-            // Check if the region must be removed //
-            if (distance > WS.maxRegionDistance)
+            // Check if the region is outside the cubic view distance //
+            if (math.abs(coord.ValueRO.Value.x - playerCoord.x) > WS.maxRegionDistance
+                || math.abs(coord.ValueRO.Value.z - playerCoord.z) > WS.maxRegionDistance
+                || math.abs(coord.ValueRO.Value.y - playerCoord.y) > WS.yViewDistance)
             {
                 state.EntityManager.SetComponentData<RegionLOD>(entity, new RegionLOD() { Level = LODLevel.TooFar });
                 state.EntityManager.SetComponentEnabled<RegionNeedRender>(entity, true);
