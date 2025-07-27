@@ -26,9 +26,11 @@ public class VoxelCountHUD : MonoBehaviour
 
             int regionCount = DS.regionsMap.Count();
             int chunkCount = DS.chunksMap.Count();
+            int chunkJob = DS.chunkToBuildQueue.Count;
             int blockCount = chunkCount * world.chunkBlocksCount;
 
             string text = $"Regions: {regionCount},  Chunks: {chunkCount},  Blocks: {blockCount}" + Environment.NewLine;
+            text += $"Chunks Job: {chunkJob}";
 
             this.GetComponent<TextMeshProUGUI>().text = text;
 

@@ -135,7 +135,8 @@ public class VoxelWorld : MonoBehaviour
     private void OnDestroy()
     {
         NativesPoolManager.DisposeAll();
-        MeshPoolManager.DisposeAll();
+        MeshesPoolManager.DisposeAll();
+        ChunksPoolManager.DisposeAll();
     }
 
     private void OnValidate()

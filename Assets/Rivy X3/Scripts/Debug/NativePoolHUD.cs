@@ -25,7 +25,8 @@ public class NativePoolHUD : MonoBehaviour
             text += NativesPoolManager<int>.GetStats() + Environment.NewLine;
             text += NativesPoolManager<float2>.GetStats() + Environment.NewLine;
             text += NativesPoolManager<Entity>.GetStats() + Environment.NewLine;
-            text += MeshPoolManager.GetStats() + Environment.NewLine + Environment.NewLine;
+            text += MeshesPoolManager.GetStats() + Environment.NewLine;
+            text += ChunksPoolManager.GetStats();
 
             this.GetComponent<TextMeshProUGUI>().text = text;
         }

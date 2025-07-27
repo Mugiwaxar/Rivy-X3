@@ -101,10 +101,6 @@ public partial struct SingletonManager : ISystem
             state.EntityManager.DestroyEntity(DS);
         }
 
-        // Kill all pools //
-        NativesPoolManager.DisposeAll();
-        MeshPoolManager.DisposeAll();
-
     }
 
     public void OnUpdate(ref SystemState state)

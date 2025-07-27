@@ -7,6 +7,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
+using UnityEngine;
 using UnityEngine.Rendering;
 using static Atlas;
 
@@ -52,11 +53,11 @@ static public partial class ChunksGenerator
                     int yRealPos = position.y * chunkSize + y;
                     if (yRealPos > 20)
                     {
-                        blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)0, true);
+                        blocks[x + chunkSize * (y + chunkSize * z)] = new BlockData((byte)0, true);
                     }
                     else
                     {
-                        blocks[Utils.PosToIndex(chunkSize, x, y, z)] = new BlockData((byte)1);
+                        blocks[x + chunkSize * (y + chunkSize * z)] = new BlockData((byte)1);
                         fullAir = false;
                     }
                 }

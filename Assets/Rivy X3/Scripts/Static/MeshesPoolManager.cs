@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public static class MeshPoolManager
+public static class MeshesPoolManager
 {
     private static readonly Stack<Mesh> Pool = new Stack<Mesh>();
     public static Dictionary<int3, Mesh> UsedMesh = new Dictionary<int3, Mesh>();

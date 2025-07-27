@@ -283,8 +283,8 @@ public static class VoxelRegion
         entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.chunkSize)));
 
         // Add the render components //
-        Mesh mesh = MeshPoolManager.GetMesh();
-        MeshPoolManager.SaveMesh(regionCoord, mesh);
+        Mesh mesh = MeshesPoolManager.GetMesh();
+        MeshesPoolManager.SaveMesh(regionCoord, mesh);
         EntitiesGraphicsSystem gfx = state.World.GetExistingSystemManaged<EntitiesGraphicsSystem>();
         //BatchMaterialID batchMatID = gfx.RegisterMaterial(VoxelWorld._Instance.Materials[0]);
         BatchMeshID batchMeshID = gfx.RegisterMesh(mesh);
@@ -292,7 +292,7 @@ public static class VoxelRegion
         MaterialMeshInfo mmi = new MaterialMeshInfo { MeshID = batchMeshID, MaterialID = VoxelWorld._Instance.MaterialID };
         RenderMeshUtility.AddComponents(regionEntity, state.EntityManager, desc, mmi);
 
-        // Set the bounds //
+        // Calcule the bounds //
         float halfChunkSize = WS.chunkSize * 0.5f;
 
         float3 extents = new float3(
@@ -300,8 +300,17 @@ public static class VoxelRegion
             WS.yRegionSize * halfChunkSize,
             WS.regionSize * halfChunkSize
         );
-
         float3 center = extents;
+
+        // Set the region bounds //
+        entityManager.SetComponentData(regionEntity, new RenderBounds
+        {
+            Value = new AABB
+            {
+                Center = center,
+                Extents = extents
+            }
+        });
 
         // Return the Entity //
         return regionEntity;
@@ -315,11 +324,10 @@ public static class VoxelRegion
         int3 regionCoord = state.EntityManager.GetComponentData<RegionCoord>(regionEntity).Value;
 
         // Release the mesh //
-        MeshPoolManager.ReleaseSavedMesh(regionCoord);
+        MeshesPoolManager.ReleaseSavedMesh(regionCoord);
 
         // Remove all chunks in the region //
         DynamicBuffer<RegionChunks> buffer = state.EntityManager.GetBuffer<RegionChunks>(regionEntity);
-        NativeList<Entity> entityToDestroy = NativesPoolManager<Entity>.GetList(WS.chunkSize * WS.chunkSize * WS.chunkSize);
 
         foreach (RegionChunks rchunk in buffer)
         {
@@ -347,15 +355,12 @@ public static class VoxelRegion
                 }
             }
 
-            // Ask to remove //
-            entityToDestroy.AddNoResize(chunkEnt);
+            // Release the chunk //
+            ChunksPoolManager.ReleaseChunk(chunkEnt);
         }
 
-        // Remove all chunks //
+        // Clear the buffer //
         buffer.Clear();
-        foreach (Entity entityChunk in entityToDestroy)
-            state.EntityManager.DestroyEntity(entityChunk);
-        NativesPoolManager<Entity>.ReleaseList(entityToDestroy);
 
         // Remove the Region //
         state.EntityManager.DestroyEntity(regionEntity);
@@ -419,7 +424,7 @@ public static class VoxelRegion
         }
 
         // Get the current mesh or get a new one //
-        Mesh mesh = MeshPoolManager.GetSavedMesh(regionCoord);
+        Mesh mesh = MeshesPoolManager.GetSavedMesh(regionCoord);
 
         // Set the mesh //
         int3 pos = entityManager.GetComponentData<RegionCoord>(regionEntity).Value;
@@ -432,7 +437,7 @@ public static class VoxelRegion
         mesh.UploadMeshData(false);
 
         // Add the mesh to the mesh table //
-        MeshPoolManager.SaveMesh(regionCoord, mesh);
+        MeshesPoolManager.SaveMesh(regionCoord, mesh);
 
         // Release all natives //
         verticesList.Dispose();

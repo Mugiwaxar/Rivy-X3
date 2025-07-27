@@ -77,11 +77,11 @@
     <Compile Include="Assets\Rivy X3\Scripts\Block\ChunkSquareFaces.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Static\EnumData.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Static\SingletonManager.cs" />
-    <Compile Include="Assets\Rivy X3\Scripts\Static\MeshPoolManager.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\ChunksPoolManager.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Player\SimpleCamera.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Debug\NativePoolHUD.cs" />
+    <Compile Include="Assets\Rivy X3\Scripts\Static\MeshesPoolManager.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Block\BlockData.cs" />
-    <Compile Include="Assets\Rivy X3\Scripts\Debug\HudTextDebug.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Voxel\ChunksManager.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Debug\VoxelCountHUD.cs" />
     <Compile Include="Assets\Rivy X3\Scripts\Block\BlockRender.cs" />

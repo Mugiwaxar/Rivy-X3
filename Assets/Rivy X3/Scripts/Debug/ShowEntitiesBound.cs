@@ -112,7 +112,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
             for (int i = 0; i < chunksEntries.Length; i++)
             {
                 int3 pos = chunksEntries.Keys[i];
-                Utils.DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
+                DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
             }
         }
 
@@ -122,10 +122,97 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
             for (int i = 0; i < regionEntries.Length; i++)
             {
                 int3 pos = regionEntries.Keys[i];
-                Utils.DebugDrawRegionBounds(pos, VoxelWorld._Instance.regionBlocksCount, VoxelWorld._Instance.chunkSize, UnityEngine.Color.magenta);
+                DebugDrawRegionBounds(
+                    pos,
+                    VoxelWorld._Instance.regionSize * VoxelWorld._Instance.chunkSize,
+                    VoxelWorld._Instance.yRegionSize * VoxelWorld._Instance.chunkSize,
+                    UnityEngine.Color.magenta);
             }
         }
 
+    }
+
+    static public void DebugDrawChunkBounds(int3 chunkPos, int chunkSize, Color color)
+    {
+        Vector3 min = new Vector3(chunkPos.x, chunkPos.y, chunkPos.z) * chunkSize;
+        Vector3 max = min + Vector3.one * chunkSize;
+
+        Vector3[] corners = new Vector3[8];
+
+        // Base
+        corners[0] = new Vector3(min.x, min.y, min.z);
+        corners[1] = new Vector3(max.x, min.y, min.z);
+        corners[2] = new Vector3(max.x, min.y, max.z);
+        corners[3] = new Vector3(min.x, min.y, max.z);
+
+        // Top
+        corners[4] = new Vector3(min.x, max.y, min.z);
+        corners[5] = new Vector3(max.x, max.y, min.z);
+        corners[6] = new Vector3(max.x, max.y, max.z);
+        corners[7] = new Vector3(min.x, max.y, max.z);
+
+        // Draw base square
+        Debug.DrawLine(corners[0], corners[1], color);
+        Debug.DrawLine(corners[1], corners[2], color);
+        Debug.DrawLine(corners[2], corners[3], color);
+        Debug.DrawLine(corners[3], corners[0], color);
+
+        // Draw top square
+        Debug.DrawLine(corners[4], corners[5], color);
+        Debug.DrawLine(corners[5], corners[6], color);
+        Debug.DrawLine(corners[6], corners[7], color);
+        Debug.DrawLine(corners[7], corners[4], color);
+
+        // Connect verticals
+        Debug.DrawLine(corners[0], corners[4], color);
+        Debug.DrawLine(corners[1], corners[5], color);
+        Debug.DrawLine(corners[2], corners[6], color);
+        Debug.DrawLine(corners[3], corners[7], color);
+    }
+
+    static public void DebugDrawRegionBounds(int3 regionCoord, int regionSizeInBlocks, int yRegionSizeInBlocks, Color color)
+    {
+
+        Vector3 min = new Vector3(
+            regionCoord.x * regionSizeInBlocks,
+            regionCoord.y * yRegionSizeInBlocks,
+            regionCoord.z * regionSizeInBlocks);
+        Vector3 max = min + new Vector3(
+            regionSizeInBlocks,
+            yRegionSizeInBlocks,
+            regionSizeInBlocks);
+
+        Vector3[] corners = new Vector3[8];
+
+        // Base
+        corners[0] = new Vector3(min.x, min.y, min.z);
+        corners[1] = new Vector3(max.x, min.y, min.z);
+        corners[2] = new Vector3(max.x, min.y, max.z);
+        corners[3] = new Vector3(min.x, min.y, max.z);
+
+        // Top
+        corners[4] = new Vector3(min.x, max.y, min.z);
+        corners[5] = new Vector3(max.x, max.y, min.z);
+        corners[6] = new Vector3(max.x, max.y, max.z);
+        corners[7] = new Vector3(min.x, max.y, max.z);
+
+        // Draw base square
+        Debug.DrawLine(corners[0], corners[1], color);
+        Debug.DrawLine(corners[1], corners[2], color);
+        Debug.DrawLine(corners[2], corners[3], color);
+        Debug.DrawLine(corners[3], corners[0], color);
+
+        // Draw top square
+        Debug.DrawLine(corners[4], corners[5], color);
+        Debug.DrawLine(corners[5], corners[6], color);
+        Debug.DrawLine(corners[6], corners[7], color);
+        Debug.DrawLine(corners[7], corners[4], color);
+
+        // Connect verticals
+        Debug.DrawLine(corners[0], corners[4], color);
+        Debug.DrawLine(corners[1], corners[5], color);
+        Debug.DrawLine(corners[2], corners[6], color);
+        Debug.DrawLine(corners[3], corners[7], color);
     }
 
 }

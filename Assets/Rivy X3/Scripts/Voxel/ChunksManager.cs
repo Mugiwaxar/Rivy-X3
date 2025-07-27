@@ -110,22 +110,17 @@ public class ChunksManager : MonoBehaviour
     public static void GenerateAllChunksInRegion(ref SystemState state, int3 regionCoord, WorldSettings WS, DataSingleton DS, DynamicBuffer<RegionChunks> buffer, int chunksCount)
     {
 
-        // Create the chunk archetype //
-        EntityArchetype archetype = state.EntityManager.CreateArchetype(typeof(ChunkPosition), typeof(LocalTransform), typeof(ChunkNeedBlocks), typeof(ChunkNeedRender), typeof(BlockData), typeof(ChunkSquareFaces));
-
-        // Create all chunks //
-        NativeArray<Entity> chunkArray = NativesPoolManager<Entity>.GetArray(chunksCount);
-        state.EntityManager.CreateEntity(archetype, chunkArray);
 
         // Set all entities //
         int i = 0;
-        NativeList<Entity> destroyList = NativesPoolManager<Entity>.GetList(chunksCount);
         for (int cx = 0; cx < WS.regionSize; cx++)
             for (int cy = 0; cy < WS.yRegionSize; cy++)
                 for (int cz = 0; cz < WS.regionSize; cz++)
                 {
 
-                    Entity chunkEntity = chunkArray[i];
+                    Entity chunkEntity = ChunksPoolManager.GetChunk();
+                    if (chunkEntity == Entity.Null) return;
+
                     i++;
                     int3 chunkCoord = new int3(
                         regionCoord.x * WS.regionSize + cx,
@@ -135,29 +130,21 @@ public class ChunksManager : MonoBehaviour
 
                     if (ChunksGenerator.CreateChunk(ref state, chunkCoord, chunkEntity, WS.chunkSize, WS.removeFullAirChunk) == false)
                     {
-                        destroyList.Add(chunkEntity);
+                        ChunksPoolManager.ReleaseChunk(chunkEntity);
                         continue;
                     }
 
                     if (DS.chunksMap.ContainsKey(chunkCoord) == true)
                     {
                         Entity entityToDestroy = DS.chunksMap[chunkCoord];
-                        destroyList.Add(entityToDestroy);
                         DS.chunksMap.Remove(chunkCoord);
+                        ChunksPoolManager.ReleaseChunk(entityToDestroy);
                     }
 
                     DS.chunksMap.Add(chunkCoord, chunkEntity);
                     buffer.Add(new RegionChunks { ChunkEntity = chunkEntity, ChunkCoord = chunkCoord });
 
                 }
-
-        // Destroy all full air chunks //
-        for (int d = destroyList.Length - 1; d >= 0; d--)
-            state.EntityManager.DestroyEntity(destroyList[d]);
-
-        // Dispose the tables //
-        NativesPoolManager<Entity>.ReleaseArray(chunkArray);
-        NativesPoolManager<Entity>.ReleaseList(destroyList);
 
     }
 
