@@ -8,7 +8,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
-public static class NativePoolManager
+public static class NativesPoolManager
 {
     public static void DisposeAll()
     {

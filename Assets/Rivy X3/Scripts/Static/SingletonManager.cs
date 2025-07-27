@@ -98,7 +98,7 @@ public partial struct SingletonManager : ISystem
         }
 
         // Kill all pools //
-        NativePoolManager.DisposeAll();
+        NativesPoolManager.DisposeAll();
         MeshPoolManager.DisposeAll();
 
     }
