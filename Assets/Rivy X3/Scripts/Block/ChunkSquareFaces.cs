@@ -94,7 +94,7 @@ namespace Assets.Scripts.Block
             trianglesList.AddNoResize(index + 3);
         }
 
-        public void GetUVs(ref NativeList<float2> uvsList, AtlasData atlasData)
+        public void GetUVs(ref NativeList<float2> uvsList, ref NativeList<float4> atlasInfoList, AtlasData atlasData)
         {
             float cellWidth = atlasData.CellWidthUV;
             float cellHeight = atlasData.CellHeightUV;
@@ -102,14 +102,20 @@ namespace Assets.Scripts.Block
             uint2 atlasIndex = Utils.IDToAtlasIndex((EnumData.BlocksID)id);
 
             float uMin = atlasIndex.x * cellWidth;
-            float uMax = uMin + cellWidth;
             float vMin = atlasIndex.y * cellHeight;
-            float vMax = vMin + cellHeight;
 
-            uvsList.AddNoResize(new float2(uMin, vMin)); // Bottom-left
-            uvsList.AddNoResize(new float2(uMax, vMin)); // Bottom-right
-            uvsList.AddNoResize(new float2(uMax, vMax)); // Top-right
-            uvsList.AddNoResize(new float2(uMin, vMax)); // Top-left
+            // Local UV coordinates, used to repeat the texture in the shader
+            uvsList.AddNoResize(new float2(0, 0)); // Bottom-left
+            uvsList.AddNoResize(new float2(this.sizeW, 0)); // Bottom-right
+            uvsList.AddNoResize(new float2(this.sizeW, this.sizeH)); // Top-right
+            uvsList.AddNoResize(new float2(0, this.sizeH)); // Top-left
+
+            // Atlas information : offset (xy) and scale (zw)
+            float4 info = new float4(uMin, vMin, cellWidth, cellHeight);
+            atlasInfoList.AddNoResize(info);
+            atlasInfoList.AddNoResize(info);
+            atlasInfoList.AddNoResize(info);
+            atlasInfoList.AddNoResize(info);
         }
 
     }

@@ -382,6 +382,7 @@ public static class VoxelRegion
         NativeList<float3> verticesList = new NativeList<float3>(totalFaces * 4, Allocator.Temp);
         NativeList<int> trianglesList = new NativeList<int>(totalFaces * 6, Allocator.Temp);
         NativeList<float2> uvsList = new NativeList<float2>(totalFaces * 4, Allocator.Temp);
+        NativeList<float4> atlasInfoList = new NativeList<float4>(totalFaces * 4, Allocator.Temp);
 
         // Itinerate all chunks //
         foreach(RegionChunks chunk in chunksBuffer)
@@ -407,7 +408,7 @@ public static class VoxelRegion
                     int startIndex = verticesList.Length;
                     squareFace.GetSquare(ref verticesList, offset);
                     squareFace.GetTriangles(startIndex, ref trianglesList);
-                    squareFace.GetUVs(ref uvsList, atlas);
+                    squareFace.GetUVs(ref uvsList, ref atlasInfoList, atlas);
                 }
             }
 
@@ -422,6 +423,7 @@ public static class VoxelRegion
         mesh.SetVertices(verticesList.AsArray());
         mesh.SetIndices(trianglesList.AsArray(), MeshTopology.Triangles, 0);
         mesh.SetUVs(0, uvsList.AsArray());
+        mesh.SetUVs(1, atlasInfoList.AsArray());
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         mesh.UploadMeshData(false);
@@ -433,6 +435,7 @@ public static class VoxelRegion
         verticesList.Dispose();
         trianglesList.Dispose();
         uvsList.Dispose();
+        atlasInfoList.Dispose();
 
         // Return the mesh //
         return mesh;

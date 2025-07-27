@@ -328,6 +328,15 @@ Shader "Custom/VoxelShader"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
 
+    // Custom UV helper for voxel atlas tiling
+    float2 VoxelUV(float2 localUV, float4 atlas)
+    {
+        return frac(localUV) * atlas.zw + atlas.xy;
+    }
+
+    // When sampling the atlas textures, use:
+    // float2 uv = VoxelUV(IN.texCoord0, IN.texCoord1);
+
     //-------------------------------------------------------------------------------------
     // variable declaration
     //-------------------------------------------------------------------------------------
