@@ -32,17 +32,15 @@ public class VoxelWorld : MonoBehaviour
 
     public byte worldSizeInChunks = 4;
     public byte worldHeightInChunks = 8;
-    public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
 
-    public int maxRegionDistance = 30;
-    public int nearRegionDistance = 20;
-    public int playerContactRegionDistance = 2;
-    public int yViewDistance = 3;
+    public int maxRegionDistance = 5;
+    public int nearRegionDistance = 3;
+    public int playerContactRegionDistance = 1;
+    public int yViewDistance = 2;
 
-    public int regionSize = 16;
+    public int regionSize = 4;
+    public int yRegionSize = 16;
     public int chunkSize = 16;
-    public int chunkBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize; } }
-    public int regionBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize * this.regionSize * this.regionSize * this.regionSize; } }
     public byte chunkInitListSize = 5;
 
     public bool doFloodFill = true;
@@ -51,6 +49,11 @@ public class VoxelWorld : MonoBehaviour
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
     public bool removeFullAirChunk = true;
+
+    public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
+    public int chunkBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize; } }
+    public int regionSizeInChunks { get { return this.regionSize * this.regionSize * this.yRegionSize; } }
+    public int regionBlocksCount { get { return this.chunkBlocksCount * this.regionSizeInChunks; } }
 
     [NonSerialized] public bool requestWorldInit = true;
 

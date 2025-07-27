@@ -42,30 +42,30 @@ public static class Utils
 
     }
 
-    public static int3 ChunkPosToRegionCoord(int3 chunkPos, int regionSize)
+    public static int3 ChunkPosToRegionCoord(int3 chunkPos, int regionSize, int yRegionSize)
     {
         return new int3(
             (int)math.floor((float)chunkPos.x / regionSize),
-            (int)math.floor((float)chunkPos.y / regionSize),
+            (int)math.floor((float)chunkPos.y / yRegionSize),
             (int)math.floor((float)chunkPos.z / regionSize)
         );
     }
 
-    public static int3 WorldPosToRegionCoord(float3 worldPos, int regionSizeInBlocks)
+    public static int3 WorldPosToRegionCoord(float3 worldPos, int regionSizeInBlocks, int yRegionSizeInBlocks)
     {
         return new int3(
             (int)math.floor(worldPos.x / regionSizeInBlocks),
-            (int)math.floor(worldPos.y / regionSizeInBlocks),
+            (int)math.floor(worldPos.y / yRegionSizeInBlocks),
             (int)math.floor(worldPos.z / regionSizeInBlocks)
         );
     }
 
-    public static float3 RegionCoordToWorldPos(float3 regionCoord, int regionSizeInBlocks)
+    public static float3 RegionCoordToWorldPos(float3 regionCoord, int regionSizeInBlocks, int yRegionSizeInBlocks)
     {
         return new float3(
-            math.floor(regionCoord.x * regionSizeInBlocks),
-            math.floor(regionCoord.y * regionSizeInBlocks),
-            math.floor(regionCoord.z * regionSizeInBlocks)
+            regionCoord.x * regionSizeInBlocks,
+            regionCoord.y * yRegionSizeInBlocks,
+            regionCoord.z * regionSizeInBlocks
         );
     }
 
@@ -107,12 +107,11 @@ public static class Utils
         Debug.DrawLine(corners[3], corners[7], color);
     }
 
-    static public void DebugDrawRegionBounds(int3 regionCoord, int regionSizeInChunks, int chunkSize, Color color)
+    static public void DebugDrawRegionBounds(int3 regionCoord, int regionSizeInBlock, int chunkSize, Color color)
     {
-        int regionSize = regionSizeInChunks * chunkSize;
 
-        Vector3 min = new Vector3(regionCoord.x, regionCoord.y, regionCoord.z) * regionSize;
-        Vector3 max = min + Vector3.one * regionSize;
+        Vector3 min = new Vector3(regionCoord.x, regionCoord.y, regionCoord.z) * regionSizeInBlock;
+        Vector3 max = min + Vector3.one * regionSizeInBlock;
 
         Vector3[] corners = new Vector3[8];
 

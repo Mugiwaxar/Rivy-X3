@@ -121,12 +121,18 @@ public class ChunksManager : MonoBehaviour
         int i = 0;
         NativeList<Entity> destroyList = NativesPoolManager<Entity>.GetList(chunksCount);
         for (int cx = 0; cx < WS.regionSize; cx++)
-            for (int cy = 0; cy < WS.regionSize; cy++)
+            for (int cy = 0; cy < WS.yRegionSize; cy++)
                 for (int cz = 0; cz < WS.regionSize; cz++)
                 {
+
                     Entity chunkEntity = chunkArray[i];
                     i++;
-                    int3 chunkCoord = regionCoord * WS.regionSize + new int3(cx, cy, cz);
+                    int3 chunkCoord = new int3(
+                        regionCoord.x * WS.regionSize + cx,
+                        regionCoord.y * WS.yRegionSize + cy,
+                        regionCoord.z * WS.regionSize + cz
+                    );
+
                     if (ChunksGenerator.CreateChunk(ref state, chunkCoord, chunkEntity, WS.chunkSize, WS.removeFullAirChunk) == false)
                     {
                         destroyList.Add(chunkEntity);
@@ -142,6 +148,7 @@ public class ChunksManager : MonoBehaviour
 
                     DS.chunksMap.Add(chunkCoord, chunkEntity);
                     buffer.Add(new RegionChunks { ChunkEntity = chunkEntity, ChunkCoord = chunkCoord });
+
                 }
 
         // Destroy all full air chunks //

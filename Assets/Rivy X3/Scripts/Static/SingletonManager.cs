@@ -15,14 +15,18 @@ public struct WorldSettings : IComponentData
     public int worldTotalSizeInChunks;
 
     public int regionSize;
+    public int yRegionSize;
     public int chunkSize;
-    public int chunkBlocksCount;
     public byte chunkInitListSize;
 
     public int maxRegionDistance;
     public int nearRegionDistance;
     public int playerContactRegionDistance;
     public int yViewDistance;
+
+    public int chunkBlocksCount;
+    public int regionSizeInChunks;
+    public int regionBlocksCount;
 
     public bool doFloodFill;
     public bool doLinearFloodFill;
@@ -128,8 +132,8 @@ public partial struct SingletonManager : ISystem
             worldTotalSizeInChunks = world.worldTotalSizeInChunk,
 
             regionSize = world.regionSize,
+            yRegionSize = world.yRegionSize,
             chunkSize = world.chunkSize,
-            chunkBlocksCount = world.chunkBlocksCount,
             chunkInitListSize = world.chunkInitListSize,
 
             maxRegionDistance = world.maxRegionDistance,
@@ -137,6 +141,9 @@ public partial struct SingletonManager : ISystem
             playerContactRegionDistance = world.playerContactRegionDistance,
             yViewDistance = world.yViewDistance,
 
+            chunkBlocksCount = world.chunkBlocksCount,
+            regionSizeInChunks = world.regionSizeInChunks,
+            regionBlocksCount = world.regionBlocksCount,
 
             doFloodFill = world.doFloodFill,
             doLinearFloodFill = world.doLinearFloodFill,

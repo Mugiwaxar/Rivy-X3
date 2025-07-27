@@ -122,7 +122,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
             for (int i = 0; i < regionEntries.Length; i++)
             {
                 int3 pos = regionEntries.Keys[i];
-                Utils.DebugDrawRegionBounds(pos, VoxelWorld._Instance.regionSize, VoxelWorld._Instance.chunkSize, UnityEngine.Color.magenta);
+                Utils.DebugDrawRegionBounds(pos, VoxelWorld._Instance.regionBlocksCount, VoxelWorld._Instance.chunkSize, UnityEngine.Color.magenta);
             }
         }
 

@@ -83,7 +83,7 @@ public partial struct PopulateRegionSystem : ISystem
                 DynamicBuffer<RegionChunks> chunksBuffer = SystemAPI.GetBuffer<RegionChunks>(regionEntity);
 
                 // Create all chunks //
-                ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer, WS.regionSize * WS.regionSize * WS.regionSize);
+                ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer, WS.regionSizeInChunks);
             }
 
         }
@@ -123,7 +123,7 @@ public partial struct UpdateRegionsSystem : ISystem
             else
             {
                 EntityManager entityManager = state.EntityManager;
-                VoxelRegion.GenerateMesh(ref entityManager, regionEntity, coord.ValueRO.Value, WS.regionSize);
+                VoxelRegion.GenerateMesh(ref entityManager, regionEntity, coord.ValueRO.Value, WS);
             }
 
         }
@@ -160,7 +160,7 @@ public partial struct RegionManagerSystem : ISystem
         if (SystemAPI.TryGetSingleton<DataSingleton>(out DataSingleton DS) == false) return;
 
         // Get the player coord //
-        int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize);
+        int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.chunkSize);
 
         // Create the nativeList //
         NativeList<RegionsInfo> regionsToCreate = new NativeList<RegionsInfo>(Allocator.Temp);
@@ -176,7 +176,7 @@ public partial struct RegionManagerSystem : ISystem
 
                     // Get the distance //
                     int adx = math.abs(regionCoord.x - playerCoord.x);
-                    int ady = math.abs(regionCoord.y - playerCoord.y);
+                    int ady = math.abs(regionCoord.y - playerCoord.y) * WS.yRegionSize / WS.regionSize;
                     int adz = math.abs(regionCoord.z - playerCoord.z);
                     int distance = math.max(math.max(adx, ady), adz);
 
@@ -280,7 +280,7 @@ public static class VoxelRegion
         entityManager.AddComponent<RegionNeedRender>(regionEntity);
         entityManager.SetComponentEnabled<RegionNeedRender>(regionEntity, false);
         entityManager.AddBuffer<RegionChunks>(regionEntity);
-        entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize)));
+        entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.chunkSize)));
 
         // Add the render components //
         Mesh mesh = MeshPoolManager.GetMesh();
@@ -293,11 +293,15 @@ public static class VoxelRegion
         RenderMeshUtility.AddComponents(regionEntity, state.EntityManager, desc, mmi);
 
         // Set the bounds //
-        int chunkSize = VoxelWorld._Instance.chunkSize;
-        float3 center = new float3(WS.regionSize * chunkSize * 0.5f);
-        float3 extents = new float3(WS.regionSize * chunkSize * 0.5f);
-        AABB bounds = new AABB { Center = center, Extents = extents };
-        state.EntityManager.SetComponentData(regionEntity, new RenderBounds { Value = bounds });
+        float halfChunkSize = WS.chunkSize * 0.5f;
+
+        float3 extents = new float3(
+            WS.regionSize * halfChunkSize,
+            WS.yRegionSize * halfChunkSize,
+            WS.regionSize * halfChunkSize
+        );
+
+        float3 center = extents;
 
         // Return the Entity //
         return regionEntity;
@@ -358,13 +362,10 @@ public static class VoxelRegion
             
     }
 
-    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCoord, int3 regionSize)
+    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCoord, WorldSettings WS)
     {
 
-        // Get atlas and blocks count //
-        int chunkSize = VoxelWorld._Instance.chunkSize;
-        int chunkBlocksCount = VoxelWorld._Instance.chunkBlocksCount;
-        int regionBlocksCount = VoxelWorld._Instance.regionBlocksCount;
+        // Get atlas //
         AtlasData atlas = VoxelWorld._Instance._Atlas;
 
         // Get the region buffer //
@@ -398,7 +399,11 @@ public static class VoxelRegion
                 DynamicBuffer<ChunkSquareFaces> squaresBuffer = entityManager.GetBuffer<ChunkSquareFaces>(chunk.ChunkEntity);
 
                 // Calcule the offset //
-                int3 offset = (chunkPos * chunkSize) - (regionCoord * regionSize * chunkSize);
+                int3 offset = (chunkPos * WS.chunkSize) - new int3(
+                    regionCoord.x * WS.regionSize * WS.chunkSize,
+                    regionCoord.y * WS.yRegionSize * WS.chunkSize,
+                    regionCoord.z * WS.regionSize * WS.chunkSize
+                );
 
                 // Generate the Lists //
                 for (int i = 0; i < squaresBuffer.Length; i++)
