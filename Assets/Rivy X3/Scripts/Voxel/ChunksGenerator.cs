@@ -9,6 +9,7 @@ using Unity.Rendering;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 using static Atlas;
 
 static public partial class ChunksGenerator
@@ -40,29 +41,30 @@ static public partial class ChunksGenerator
         if (squares.Length < total) squares.ResizeUninitialized(total);
         squares.Clear();
 
-        // Full air chunk, don't create //
-        bool fullAir = true;
+        return false;
 
-        // Fill the chunk table with all blocks //
-        for (int x = 0; x < chunkSize; x++)
+        // Get a native array for the job //
+        NativeArray<BlockData> jobArray = NativesPoolManager<BlockData>.GetArray(total);
+
+        // Create the job //
+        FillChunkJob job = new FillChunkJob
         {
-            for (int y = 0; y < chunkSize; y++)
-            {
-                for (int z = 0; z < chunkSize; z++)
-                {
-                    int yRealPos = position.y * chunkSize + y;
-                    if (yRealPos > 20)
-                    {
-                        blocks[x + chunkSize * (y + chunkSize * z)] = new BlockData((byte)0, true);
-                    }
-                    else
-                    {
-                        blocks[x + chunkSize * (y + chunkSize * z)] = new BlockData((byte)1);
-                        fullAir = false;
-                    }
-                }
-            }
+            blocks = jobArray,
+            chunkSize = chunkSize,
+            position = position
+        };
+        job.Schedule(jobArray.Length, 32).Complete();
+
+        // Copy the result //
+        bool fullAir = true;
+        for (int i = 0; i < jobArray.Length; i++)
+        {
+            if (jobArray[i].IsAir() == false) fullAir = false;
+            blocks[i] = jobArray[i];
         }
+
+        // Release the job array //
+        NativesPoolManager<BlockData>.ReleaseArray(jobArray);
 
         // Check if full air //
         if (fullAir == true && removeFullAirChunk == true)
@@ -70,6 +72,28 @@ static public partial class ChunksGenerator
 
         // Return //
         return true;
+
+    }
+
+    [BurstCompile]
+    public partial struct FillChunkJob : IJobParallelFor
+    {
+
+        public NativeArray<BlockData> blocks;
+        [ReadOnly] public int chunkSize;
+        [ReadOnly] public int3 position;
+
+        public void Execute(int index)
+        {
+            int x = index % chunkSize;
+            int y = (index / chunkSize) % chunkSize;
+            int z = index / (chunkSize * chunkSize);
+            int yRealPos = position.y * chunkSize + y;
+            if (yRealPos > 20)
+                blocks[index] = new BlockData((byte)0, true);
+            else
+                blocks[index] = new BlockData((byte)1);
+        }
 
     }
 
