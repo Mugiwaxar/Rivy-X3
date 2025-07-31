@@ -3,6 +3,7 @@ using System;
 using System.Drawing;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
@@ -33,16 +34,17 @@ public struct RegionsInfo
 public partial struct PopulateRegionSystem : ISystem
 {
 
-    NativeQueue<Entity> nativeQueueJob;
+    NativeQueue<Entity> regionsToPopulateQueue;
+    JobHandle populateRegionJob;
 
     public void OnCreate(ref SystemState state)
     {
-        this.nativeQueueJob = new NativeQueue<Entity>(Allocator.Persistent);
+        this.regionsToPopulateQueue = new NativeQueue<Entity>(Allocator.Persistent);
     }
 
     public void OnDestroy(ref SystemState state)
     {
-        this.nativeQueueJob.Dispose();
+        this.regionsToPopulateQueue.Dispose();
     }
 
     public void OnUpdate(ref SystemState state)
@@ -60,18 +62,18 @@ public partial struct PopulateRegionSystem : ISystem
             SystemAPI.SetComponentEnabled<RegionNeedChunks>(regionEntity, false);
 
             // Add the entity to the queue //
-            this.nativeQueueJob.Enqueue(regionEntity);
+            this.regionsToPopulateQueue.Enqueue(regionEntity);
 
 
 
         }
 
         // Populate regions one by one //
-        if (this.nativeQueueJob.Count > 0)
+        if (this.regionsToPopulateQueue.Count > 0)
         {
             
             // Get the region //
-            Entity regionEntity = nativeQueueJob.Dequeue();
+            Entity regionEntity = regionsToPopulateQueue.Dequeue();
             
             // Check if the region still exist //
             if (state.EntityManager.Exists(regionEntity) == true)

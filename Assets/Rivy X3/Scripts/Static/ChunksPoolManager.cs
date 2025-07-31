@@ -11,6 +11,7 @@ using UnityEngine;
 public partial struct ChunksPoolManagerSystem : ISystem
 {
 
+    // Volontary error do diseable the system //
     public void OnCreate(ref SystemState state)
     {
 
@@ -28,7 +29,7 @@ public partial struct ChunksPoolManagerSystem : ISystem
         state.EntityManager.CreateEntity(archetype, chunkArray);
 
         // Add all chunks to the Stack //
-        ChunksPoolManager.AddChunks(chunkArray);
+        ChunksPoolManager.AddChunks(ref state, chunkArray);
 
         // Dispose the Array //
         chunkArray.Dispose();
@@ -44,10 +45,14 @@ public class ChunksPoolManager
     private static Stack<Entity> Pool = new Stack<Entity>();
     private static readonly object Locker = new();
 
-    public static void AddChunks(NativeArray<Entity> chunkArray)
+    public static void AddChunks(ref SystemState state, NativeArray<Entity> chunkArray)
     {
         foreach (Entity entity in chunkArray)
+        {
             Pool.Push(entity);
+            state.EntityManager.SetComponentEnabled<ChunkNeedBlocks>(entity, false);
+            state.EntityManager.SetComponentEnabled<ChunkNeedRender>(entity, false);
+        }
     }
 
     public static Entity GetChunk()

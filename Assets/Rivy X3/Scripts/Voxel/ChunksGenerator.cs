@@ -1,77 +1,65 @@
 ﻿using Assets.Scripts.Block;
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
-using Unity.Rendering;
 using Unity.Transforms;
-using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UIElements;
 using static Atlas;
 
 static public partial class ChunksGenerator
 {
-    public static bool CreateChunk(ref SystemState state, int3 position, Entity chunk, int chunkSize, bool removeFullAirChunk)
+    public static Entity CreateChunk(ref SystemState state, ref NativeArray<BlockData> blocksArray, int arrayOffset, int3 position, WorldSettings WS)
     {
+
+        // Check if full air //
+        if (WS.removeFullAirChunk == true)
+        {
+            bool isFullAir = true;
+            for (int i = arrayOffset; i < arrayOffset + WS.chunkBlocksCount; i++)
+            {
+                if (blocksArray[i].IsAir() == false)
+                {
+                    isFullAir = false;
+                    break;
+                }
+            }
+
+            if (isFullAir == true)
+                return Entity.Null;
+
+        }
+
+        // Get a chunk entity //
+        Entity chunkEntity = ChunksPoolManager.GetChunk();
 
         // Get the entity manager //
         EntityManager entityManager = state.EntityManager;
 
         // Set the position components //
-        entityManager.SetComponentData<ChunkPosition>(chunk, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
+        entityManager.SetComponentData<ChunkPosition>(chunkEntity, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
 
         // Set the local transform //
-        float3 worldPos = position * chunkSize;
-        entityManager.SetComponentData<LocalTransform>(chunk, LocalTransform.FromPosition(worldPos));
+        float3 worldPos = position * WS.chunkSize;
+        entityManager.SetComponentData<LocalTransform>(chunkEntity, LocalTransform.FromPosition(worldPos));
 
         // Set all enableable Components //
-        entityManager.SetComponentEnabled<ChunkNeedBlocks>(chunk, true);
-        entityManager.SetComponentEnabled<ChunkNeedRender>(chunk, true);
+        entityManager.SetComponentEnabled<ChunkNeedRender>(chunkEntity, true);
 
         // Get the buffers //
-        DynamicBuffer<BlockData> blocks = entityManager.GetBuffer<BlockData>(chunk);
-        DynamicBuffer<ChunkSquareFaces> squares = entityManager.GetBuffer<ChunkSquareFaces>(chunk);
+        DynamicBuffer<BlockData> blocksBuffer = entityManager.GetBuffer<BlockData>(chunkEntity);
+        DynamicBuffer<ChunkSquareFaces> squaresBuffer = entityManager.GetBuffer<ChunkSquareFaces>(chunkEntity);
 
         // Check the buffers length //
-        int total = chunkSize * chunkSize * chunkSize;
-        if (blocks.Length < total) blocks.ResizeUninitialized(total);
-        if (squares.Length < total) squares.ResizeUninitialized(total);
-        squares.Clear();
+        if (blocksBuffer.Length < WS.chunkBlocksCount) blocksBuffer.ResizeUninitialized(WS.chunkBlocksCount);
+        if (squaresBuffer.Length < WS.chunkBlocksCount) squaresBuffer.ResizeUninitialized(WS.chunkBlocksCount);
+        squaresBuffer.Clear();
 
-        return false;
+        // Copy all chunk blocks to the buffer //
+        blocksBuffer.CopyFrom(blocksArray.GetSubArray(arrayOffset, WS.chunkBlocksCount));
 
-        // Get a native array for the job //
-        NativeArray<BlockData> jobArray = NativesPoolManager<BlockData>.GetArray(total);
-
-        // Create the job //
-        FillChunkJob job = new FillChunkJob
-        {
-            blocks = jobArray,
-            chunkSize = chunkSize,
-            position = position
-        };
-        job.Schedule(jobArray.Length, 32).Complete();
-
-        // Copy the result //
-        bool fullAir = true;
-        for (int i = 0; i < jobArray.Length; i++)
-        {
-            if (jobArray[i].IsAir() == false) fullAir = false;
-            blocks[i] = jobArray[i];
-        }
-
-        // Release the job array //
-        NativesPoolManager<BlockData>.ReleaseArray(jobArray);
-
-        // Check if full air //
-        if (fullAir == true && removeFullAirChunk == true)
-            return false;
-
-        // Return //
-        return true;
+        // Return the entity //
+        return chunkEntity;
 
     }
 
@@ -81,14 +69,16 @@ static public partial class ChunksGenerator
 
         public NativeArray<BlockData> blocks;
         [ReadOnly] public int chunkSize;
-        [ReadOnly] public int3 position;
+        [ReadOnly] public int3 regionRealPosition;
 
         public void Execute(int index)
         {
-            int x = index % chunkSize;
+            //int x = index % chunkSize;
             int y = (index / chunkSize) % chunkSize;
-            int z = index / (chunkSize * chunkSize);
-            int yRealPos = position.y * chunkSize + y;
+            //int z = index / (chunkSize * chunkSize);
+            //int xRealPos = regionRealPosition.x + x;
+            int yRealPos = regionRealPosition.y + y;
+            //int zRealPos = regionRealPosition.z + z;
             if (yRealPos > 20)
                 blocks[index] = new BlockData((byte)0, true);
             else

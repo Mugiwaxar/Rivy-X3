@@ -663,12 +663,12 @@ MonoBehaviour:
   atlasTexture: {fileID: 2800000, guid: 9b669b78c1cdef74aa45b8e3e5e5a166, type: 3}
   worldSizeInChunks: 50
   worldHeightInChunks: 10
-  maxRegionDistance: 4
-  nearRegionDistance: 3
+  maxRegionDistance: 3
+  nearRegionDistance: 1
   playerContactRegionDistance: 1
-  yViewDistance: 0
+  yViewDistance: 3
   regionSize: 4
-  yRegionSize: 16
+  yRegionSize: 2
   chunkSize: 16
   chunkInitListSize: 16
   doFloodFill: 1
