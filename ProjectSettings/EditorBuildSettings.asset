@@ -12,6 +12,8 @@ EditorBuildSettings:
     path: Assets/Rivy X3/Scenes/Main.unity
     guid: 40df1378246254d44a3bbec9251a134b
   m_configObjects:
+    com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 000ad9783600d2b4b89df690a3ee960a, type: 2}
+    com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: cb6a98deb35f36644ab3cbce637bb82d, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 1b0be35444fbc8643942b84588a55a90, type: 2}
   m_UseUCBPForAssetBundles: 0

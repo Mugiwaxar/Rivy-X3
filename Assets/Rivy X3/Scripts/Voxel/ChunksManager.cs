@@ -115,12 +115,18 @@ public class ChunksManager : MonoBehaviour
         // Create the blocks table //
         NativeArray<BlockData> regionBlocks = NativesPoolManager<BlockData>.GetArray(WS.regionBlocksCount);
 
+        // Get the region position in blocks //
+        int3 regionBasePos = new int3(
+                regionCoord.x * WS.regionSize * WS.chunkSize,
+                regionCoord.y * WS.yRegionSize * WS.chunkSize,
+                regionCoord.z * WS.regionSize * WS.chunkSize);
+
         // Create the job //
         new FillChunkJob()
         {
             blocks = regionBlocks,
             chunkSize = WS.chunkSize,
-            regionRealPosition = regionCoord * WS.regionSize * WS.chunkSize
+            regionRealPosition = regionBasePos
         }.Schedule(WS.regionBlocksCount, 64).Complete();
 
         // Set all Chunks //

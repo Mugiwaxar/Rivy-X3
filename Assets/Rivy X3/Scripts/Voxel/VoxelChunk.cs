@@ -58,6 +58,12 @@ public partial struct BuildMesh : ISystem
             state.EntityManager.SetComponentEnabled<ChunkNeedRender>(entity, false);
         }
 
+
+
+
+
+
+
         // Add jobs //
         int totalBlock = WS.chunkBlocksCount;
         int chunkSize = WS.chunkSize;
@@ -84,7 +90,7 @@ public partial struct BuildMesh : ISystem
             GenerateChunksGraphics jobStruct = new GenerateChunksGraphics
             {
 
-                vms = WS,
+                WS = WS,
 
                 pos = state.EntityManager.GetComponentData<ChunkPosition>(chunkData.chunk).Value,
                 chunkCenter = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f),

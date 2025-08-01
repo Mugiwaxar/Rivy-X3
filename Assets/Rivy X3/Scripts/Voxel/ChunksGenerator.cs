@@ -73,6 +73,7 @@ static public partial class ChunksGenerator
 
         public void Execute(int index)
         {
+
             //int x = index % chunkSize;
             int y = (index / chunkSize) % chunkSize;
             //int z = index / (chunkSize * chunkSize);
@@ -91,7 +92,7 @@ static public partial class ChunksGenerator
     public partial struct GenerateChunksGraphics : IJob
     {
 
-        [ReadOnly] public WorldSettings vms;
+        [ReadOnly] public WorldSettings WS;
 
         [ReadOnly] public int3 pos;
         [ReadOnly] public float3 chunkCenter;
@@ -128,30 +129,34 @@ static public partial class ChunksGenerator
             this.currentChunk = this.blocksLookup[chunkEntity];
 
             // Get the settings //
-            this.chunkSize = vms.chunkSize;
-            this.totalBlocks = vms.chunkBlocksCount;
+            this.chunkSize = WS.chunkSize;
+            this.totalBlocks = WS.chunkBlocksCount;
 
             // Get all neighbors //
-            Entity leftNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Left);
-            if (leftNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(leftNeighborEntity)) this.leftNeighbor = this.blocksLookup[leftNeighborEntity];
-            Entity rightNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Right);
-            if (rightNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(rightNeighborEntity)) this.rightNeighbor = this.blocksLookup[rightNeighborEntity];
-            Entity bottomNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Bottom);
-            if (bottomNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(bottomNeighborEntity)) this.bottomNeighbor = this.blocksLookup[bottomNeighborEntity];
-            Entity topNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Top);
-            if (topNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(topNeighborEntity)) this.topNeighbor = this.blocksLookup[topNeighborEntity];
-            Entity backNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Back);
-            if (backNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(backNeighborEntity)) this.backNeighbor = this.blocksLookup[backNeighborEntity];
-            Entity frontNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Front);
-            if (frontNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(frontNeighborEntity)) this.frontNeighbor = this.blocksLookup[frontNeighborEntity];
+            if (this.WS.doChunkBorderOcclusion == true)
+            {
+                Entity leftNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Left);
+                if (leftNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(leftNeighborEntity)) this.leftNeighbor = this.blocksLookup[leftNeighborEntity];
+                Entity rightNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Right);
+                if (rightNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(rightNeighborEntity)) this.rightNeighbor = this.blocksLookup[rightNeighborEntity];
+                Entity bottomNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Bottom);
+                if (bottomNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(bottomNeighborEntity)) this.bottomNeighbor = this.blocksLookup[bottomNeighborEntity];
+                Entity topNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Top);
+                if (topNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(topNeighborEntity)) this.topNeighbor = this.blocksLookup[topNeighborEntity];
+                Entity backNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Back);
+                if (backNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(backNeighborEntity)) this.backNeighbor = this.blocksLookup[backNeighborEntity];
+                Entity frontNeighborEntity = ChunksManager.GetChunk(this.chunkMap, this.pos.x, this.pos.y, this.pos.z, EnumData.Direction.Front);
+                if (frontNeighborEntity != Entity.Null && this.blocksLookup.HasBuffer(frontNeighborEntity)) this.frontNeighbor = this.blocksLookup[frontNeighborEntity];
+            }
+
 
 
             // Do the flood fill //
-            if (vms.doFloodFill == true)
+            if (WS.doFloodFill == true)
                 this.executeFloodFill();
 
             // Do the linear flood fill //
-            if (vms.doLinearFloodFill == true)
+            if (WS.doLinearFloodFill == true)
                 this.executeLinearFloodFill();
 
             // Generate the render blocks //
@@ -353,7 +358,7 @@ static public partial class ChunksGenerator
             // ------------------------------------------ LEFT FACE ------------------------------------------ //
 
             // Check the previous face //
-            if (vms.doGreedyMeshing == true)
+            if (WS.doGreedyMeshing == true)
             {
                 int neighborFaceRenderIndex = this.getBlockRenderIndex(x, y, z - 1);
                 if (neighborFaceRenderIndex >= 0)
@@ -375,10 +380,10 @@ static public partial class ChunksGenerator
             }
 
             // Check if the face must be created //
-            if (blockData.IsRenderable() == true && (vms.doFacesOcclusion == false || leftBlock.IsRenderable() == false) && isVisitedFace(leftBockIndex) == true)
+            if (blockData.IsRenderable() == true && (WS.doFacesOcclusion == false || leftBlock.IsRenderable() == false) && isVisitedFace(leftBockIndex) == true)
             {
                 faceMask |= 1 << 0;
-                if (vms.doGreedyMeshing == true)
+                if (WS.doGreedyMeshing == true)
                 {
                     blockRender.leftWSize = 0;
                     blockRender.leftHSize = 0;
@@ -397,7 +402,7 @@ static public partial class ChunksGenerator
             }
 
             // End the line if the block has reached the end of the chunk //
-            if (vms.doGreedyMeshing == true && blockData.IsRenderable() == true && leftBlock.IsRenderable() == false && z >= this.chunkSize - 1)
+            if (WS.doGreedyMeshing == true && blockData.IsRenderable() == true && leftBlock.IsRenderable() == false && z >= this.chunkSize - 1)
             {
                 int bottomFaceRenderIndex = this.getBlockRenderIndex(x, y - 1, z);
                 if (bottomFaceRenderIndex >= 0)
@@ -418,7 +423,7 @@ static public partial class ChunksGenerator
             // ------------------------------------------ RIGHT FACE ------------------------------------------ //
 
             // Check the previous face //
-            if (vms.doGreedyMeshing == true)
+            if (WS.doGreedyMeshing == true)
             {
                 int neighborFaceRenderIndex = this.getBlockRenderIndex(x, y, z - 1);
                 if (neighborFaceRenderIndex >= 0)
@@ -440,11 +445,11 @@ static public partial class ChunksGenerator
             }
 
             // Check if the face must be created //
-            if (blockData.IsRenderable() == true && (vms.doFacesOcclusion == false || rightBlock.IsRenderable() == false) && isVisitedFace(rightBlockIndex) == true)
+            if (blockData.IsRenderable() == true && (WS.doFacesOcclusion == false || rightBlock.IsRenderable() == false) && isVisitedFace(rightBlockIndex) == true)
             {
                 faceMask |= 1 << 1;
 
-                if (vms.doGreedyMeshing == true)
+                if (WS.doGreedyMeshing == true)
                 {
                     blockRender.rightWSize = 0;
                     blockRender.rightHSize = 0;
@@ -464,7 +469,7 @@ static public partial class ChunksGenerator
             }
 
             // End the line if the block has reached the end of the chunk //
-            if (vms.doGreedyMeshing == true && blockData.IsRenderable() == true && rightBlock.IsRenderable() == false && z >= this.chunkSize - 1)
+            if (WS.doGreedyMeshing == true && blockData.IsRenderable() == true && rightBlock.IsRenderable() == false && z >= this.chunkSize - 1)
             {
                 int bottomFaceRenderIndex = this.getBlockRenderIndex(x, y - 1, z);
                 if (bottomFaceRenderIndex >= 0)
@@ -485,7 +490,7 @@ static public partial class ChunksGenerator
             // ------------------------------------------ BOTTOM FACE ------------------------------------------ //
 
             // Check the previous face //
-            if (vms.doGreedyMeshing == true)
+            if (WS.doGreedyMeshing == true)
             {
                 int neighborFaceRenderIndex = this.getBlockRenderIndex(x - 1, y, z);
                 if (neighborFaceRenderIndex >= 0)
@@ -507,11 +512,11 @@ static public partial class ChunksGenerator
             }
 
             // Check if the face must be created //
-            if (blockData.IsRenderable() == true && (vms.doFacesOcclusion == false || bottomBlock.IsRenderable() == false) && isVisitedFace(bottomBlockIndex) == true)
+            if (blockData.IsRenderable() == true && (WS.doFacesOcclusion == false || bottomBlock.IsRenderable() == false) && isVisitedFace(bottomBlockIndex) == true)
             {
                 faceMask |= 1 << 2;
 
-                if (vms.doGreedyMeshing == true)
+                if (WS.doGreedyMeshing == true)
                 {
                     blockRender.bottomWSize = 0;
                     blockRender.bottomHSize = 0;
@@ -531,7 +536,7 @@ static public partial class ChunksGenerator
             }
 
             // End the line if the block has reached the end of the chunk //
-            if (vms.doGreedyMeshing == true && blockData.IsRenderable() == true && bottomBlock.IsRenderable() == false && x >= this.chunkSize - 1)
+            if (WS.doGreedyMeshing == true && blockData.IsRenderable() == true && bottomBlock.IsRenderable() == false && x >= this.chunkSize - 1)
             {
                 int bottomFaceRenderIndex = this.getBlockRenderIndex(x, y, z - 1);
                 if (bottomFaceRenderIndex >= 0)
@@ -552,7 +557,7 @@ static public partial class ChunksGenerator
             // ------------------------------------------ TOP FACE ------------------------------------------ //
 
             // Check the previous face //
-            if (vms.doGreedyMeshing == true)
+            if (WS.doGreedyMeshing == true)
             {
                 int neighborFaceRenderIndex = this.getBlockRenderIndex(x - 1, y, z);
                 if (neighborFaceRenderIndex >= 0)
@@ -574,11 +579,11 @@ static public partial class ChunksGenerator
             }
 
             // Check if the face must be created //
-            if (blockData.IsRenderable() == true && (vms.doFacesOcclusion == false || topBlock.IsRenderable() == false) && isVisitedFace(topBlockIndex) == true)
+            if (blockData.IsRenderable() == true && (WS.doFacesOcclusion == false || topBlock.IsRenderable() == false) && isVisitedFace(topBlockIndex) == true)
             {
                 faceMask |= 1 << 3;
 
-                if (vms.doGreedyMeshing == true)
+                if (WS.doGreedyMeshing == true)
                 {
                     blockRender.topWSize = 0;
                     blockRender.topHSize = 0;
@@ -598,7 +603,7 @@ static public partial class ChunksGenerator
             }
 
             // End the line if the block has reached the end of the chunk //
-            if (vms.doGreedyMeshing == true && blockData.IsRenderable() == true && topBlock.IsRenderable() == false && x >= this.chunkSize - 1)
+            if (WS.doGreedyMeshing == true && blockData.IsRenderable() == true && topBlock.IsRenderable() == false && x >= this.chunkSize - 1)
             {
                 int bottomFaceRenderIndex = this.getBlockRenderIndex(x, y, z - 1);
                 if (bottomFaceRenderIndex >= 0)
@@ -618,7 +623,7 @@ static public partial class ChunksGenerator
             // ------------------------------------------ BACK FACE ------------------------------------------ //
 
             // Check the previous face //
-            if (vms.doGreedyMeshing == true)
+            if (WS.doGreedyMeshing == true)
             {
                 int neighborFaceRenderIndex = this.getBlockRenderIndex(x - 1, y, z);
                 if (neighborFaceRenderIndex >= 0)
@@ -640,11 +645,11 @@ static public partial class ChunksGenerator
             }
 
             // Check if the face must be created //
-            if (blockData.IsRenderable() == true && (vms.doFacesOcclusion == false || backBlock.IsRenderable() == false) && isVisitedFace(backBlockIndex) == true)
+            if (blockData.IsRenderable() == true && (WS.doFacesOcclusion == false || backBlock.IsRenderable() == false) && isVisitedFace(backBlockIndex) == true)
             {
                 faceMask |= 1 << 4;
 
-                if (vms.doGreedyMeshing == true)
+                if (WS.doGreedyMeshing == true)
                 {
                     blockRender.backWSize = 0;
                     blockRender.backHSize = 0;
@@ -664,7 +669,7 @@ static public partial class ChunksGenerator
             }
 
             // End the line if the block has reached the end of the chunk //
-            if (vms.doGreedyMeshing == true && blockData.IsRenderable() == true && backBlock.IsRenderable() == false && x >= this.chunkSize - 1)
+            if (WS.doGreedyMeshing == true && blockData.IsRenderable() == true && backBlock.IsRenderable() == false && x >= this.chunkSize - 1)
             {
                 int bottomFaceRenderIndex = this.getBlockRenderIndex(x, y - 1, z);
                 if (bottomFaceRenderIndex >= 0)
@@ -685,7 +690,7 @@ static public partial class ChunksGenerator
             // ------------------------------------------ FRONT FACE ------------------------------------------ //
 
             // Check the previous face //
-            if (vms.doGreedyMeshing == true)
+            if (WS.doGreedyMeshing == true)
             {
                 int neighborFaceRenderIndex = this.getBlockRenderIndex(x - 1, y, z);
                 if (neighborFaceRenderIndex >= 0)
@@ -707,11 +712,11 @@ static public partial class ChunksGenerator
             }
 
             // Check if the face must be created //
-            if (blockData.IsRenderable() == true && (vms.doFacesOcclusion == false || frontBlock.IsRenderable() == false) && isVisitedFace(frontBlockIndex) == true)
+            if (blockData.IsRenderable() == true && (WS.doFacesOcclusion == false || frontBlock.IsRenderable() == false) && isVisitedFace(frontBlockIndex) == true)
             {
                 faceMask |= 1 << 5;
 
-                if (vms.doGreedyMeshing == true)
+                if (WS.doGreedyMeshing == true)
                 {
                     blockRender.frontWSize = 0;
                     blockRender.frontHSize = 0;
@@ -731,7 +736,7 @@ static public partial class ChunksGenerator
             }
 
             // End the line if the block has reached the end of the chunk //
-            if (vms.doGreedyMeshing == true && blockData.IsRenderable() == true && frontBlock.IsRenderable() == false && x >= this.chunkSize - 1)
+            if (WS.doGreedyMeshing == true && blockData.IsRenderable() == true && frontBlock.IsRenderable() == false && x >= this.chunkSize - 1)
             {
                 int bottomFaceRenderIndex = this.getBlockRenderIndex(x, y - 1, z);
                 if (bottomFaceRenderIndex >= 0)
@@ -804,32 +809,32 @@ static public partial class ChunksGenerator
             // Check if this is a block from a neighbor chunk //
             if (x < 0)
             {
-                if (this.leftNeighbor.IsCreated == false || this.leftNeighbor.Length != this.totalBlocks) return BlockData.Air;
+                if (this.WS.doChunkBorderOcclusion == false || this.leftNeighbor.IsCreated == false || this.leftNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.leftNeighbor[ToIndex(this.chunkSize - 1, y, z)];
             }
             if (x >= this.chunkSize)
             {
-                if (this.rightNeighbor.IsCreated == false || this.rightNeighbor.Length != this.totalBlocks) return BlockData.Air;
+                if (this.WS.doChunkBorderOcclusion == false || this.rightNeighbor.IsCreated == false || this.rightNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.rightNeighbor[ToIndex(0, y, z)];
             }
             if (y < 0)
             {
-                if (this.bottomNeighbor.IsCreated == false || this.bottomNeighbor.Length != this.totalBlocks) return BlockData.Air;
+                if (this.WS.doChunkBorderOcclusion == false || this.bottomNeighbor.IsCreated == false || this.bottomNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.bottomNeighbor[ToIndex(x, this.chunkSize - 1, z)];
             }
             if (y >= this.chunkSize)
             {
-                if (this.topNeighbor.IsCreated == false || this.topNeighbor.Length != this.totalBlocks) return BlockData.Air;
+                if (this.WS.doChunkBorderOcclusion == false || this.topNeighbor.IsCreated == false || this.topNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.topNeighbor[ToIndex(x, 0, z)];
             }
             if (z < 0)
             {
-                if (this.backNeighbor.IsCreated == false || this.backNeighbor.Length != this.totalBlocks) return BlockData.Air;
+                if (this.WS.doChunkBorderOcclusion == false || this.backNeighbor.IsCreated == false || this.backNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.backNeighbor[ToIndex(x, y, this.chunkSize - 1)];
             }
             if (z >= this.chunkSize)
             {
-                if (this.frontNeighbor.IsCreated == false || this.frontNeighbor.Length != this.totalBlocks) return BlockData.Air;
+                if (this.WS.doChunkBorderOcclusion == false || this.frontNeighbor.IsCreated == false || this.frontNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.frontNeighbor[ToIndex(x, y, 0)];
             }
 
@@ -843,11 +848,11 @@ static public partial class ChunksGenerator
             if (index < 0 || index >= this.totalBlocks)
                 return true;
 
-            if (vms.doFloodFill == true && vms.doLinearFloodFill == true)
+            if (WS.doFloodFill == true && WS.doLinearFloodFill == true)
                 return this.floodVisited[index] == 1 && this.linearFloodVisited[index] == 1;
-            else if (vms.doFloodFill == true && vms.doLinearFloodFill == false)
+            else if (WS.doFloodFill == true && WS.doLinearFloodFill == false)
                 return this.floodVisited[index] == 1;
-            else if (vms.doFloodFill == false && vms.doLinearFloodFill == true)
+            else if (WS.doFloodFill == false && WS.doLinearFloodFill == true)
                 return this.linearFloodVisited[index] == 1;
 
             return true;
@@ -855,7 +860,7 @@ static public partial class ChunksGenerator
 
         private bool IsFacingCamera(int x, int y, int z, FaceDirection dir)
         {
-            if (vms.doFaceNormalCheck == false) return true;
+            if (WS.doFaceNormalCheck == false) return true;
             float3 center = new float3(x + 0.5f, y + 0.5f, z + 0.5f);
             float3 toCam = math.normalize(this.cameraPosition - center);
             float3 normal = GetFaceNormal(dir);

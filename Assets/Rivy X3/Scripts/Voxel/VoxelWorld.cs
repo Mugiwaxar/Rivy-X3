@@ -5,6 +5,8 @@ using System;
 using Unity.Entities;
 using System.Threading.Tasks;
 using Unity.Rendering;
+using Unity.Jobs.LowLevel.Unsafe;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -47,9 +49,12 @@ public class VoxelWorld : MonoBehaviour
     public bool doFloodFill = true;
     public bool doLinearFloodFill = true;
     public bool doFacesOcclusion = true;
+    public bool doChunkBorderOcclusion = true;
     public bool doGreedyMeshing = true;
     public bool doFaceNormalCheck = true;
     public bool removeFullAirChunk = true;
+
+    public bool sphericChunkGeneration = true;
 
     public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
     public int chunkBlocksCount { get { return this.chunkSize * this.chunkSize * this.chunkSize; } }
@@ -71,6 +76,8 @@ public class VoxelWorld : MonoBehaviour
             // Create the world //
             var world = new World("World");
             World.DefaultGameObjectInjectionWorld = world;
+            Debug.Log(JobsUtility.JobWorkerCount);
+            JobsUtility.JobWorkerCount = SystemInfo.processorCount - 1;
             return true;
         }
     }

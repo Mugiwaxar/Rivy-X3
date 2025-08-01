@@ -32,9 +32,12 @@ public struct WorldSettings : IComponentData
     public bool doFloodFill;
     public bool doLinearFloodFill;
     public bool doFacesOcclusion;
+    public bool doChunkBorderOcclusion;
     public bool doGreedyMeshing;
     public bool doFaceNormalCheck;
     public bool removeFullAirChunk;
+
+    public bool sphericChunkGeneration;
 
 }
 
@@ -148,9 +151,12 @@ public partial struct SingletonManager : ISystem
             doFloodFill = world.doFloodFill,
             doLinearFloodFill = world.doLinearFloodFill,
             doFacesOcclusion = world.doFacesOcclusion,
+            doChunkBorderOcclusion = world.doChunkBorderOcclusion,
             doGreedyMeshing = world.doGreedyMeshing,
             doFaceNormalCheck = world.doFaceNormalCheck,
-            removeFullAirChunk = world.removeFullAirChunk
+            removeFullAirChunk = world.removeFullAirChunk,
+
+            sphericChunkGeneration = world.sphericChunkGeneration
 
         });
 

@@ -1,4 +1,4 @@
-using Assets.Scripts.Block;
+﻿using Assets.Scripts.Block;
 using System;
 using System.Drawing;
 using Unity.Collections;
@@ -181,10 +181,27 @@ public partial struct RegionManagerSystem : ISystem
                     int3 regionCoord = playerCoord + new int3(dx, dy, dz);
 
                     // Get the distance //
-                    int adx = math.abs(regionCoord.x - playerCoord.x);
-                    int ady = math.abs(regionCoord.y - playerCoord.y) * WS.yRegionSize / WS.regionSize;
-                    int adz = math.abs(regionCoord.z - playerCoord.z);
-                    int distance = math.max(math.max(adx, ady), adz);
+                    float distance = 0;
+
+                    // Cubic or spheric generation //
+                    if (WS.sphericChunkGeneration == false)
+                    {
+                        int adx = math.abs(regionCoord.x - playerCoord.x);
+                        int ady = math.abs(regionCoord.y - playerCoord.y) * WS.yRegionSize / WS.regionSize;
+                        int adz = math.abs(regionCoord.z - playerCoord.z);
+                        distance = math.max(math.max(adx, ady), adz);
+                    }
+                    else
+                    {
+                        distance = math.sqrt(
+                            dx * dx +
+                            dz * dz +
+                            math.pow(dy * WS.yRegionSize / WS.regionSize, 2)
+                        );
+                        if (distance > WS.maxRegionDistance)
+                            continue;
+                    }
+
 
                     // Get the wanted LOD //
                     LODLevel level = LODLevel.TooFar;
@@ -217,10 +234,35 @@ public partial struct RegionManagerSystem : ISystem
         foreach ((RefRO<RegionCoord> coord, Entity entity) in SystemAPI.Query<RefRO<RegionCoord>>().WithEntityAccess())
         {
 
-            // Check if the region is outside the cubic view distance //
-            if (math.abs(coord.ValueRO.Value.x - playerCoord.x) > WS.maxRegionDistance
+            // Check the distance //
+            bool outsideDistance = false;
+
+            if (WS.sphericChunkGeneration == false)
+            {
+                if (math.abs(coord.ValueRO.Value.x - playerCoord.x) > WS.maxRegionDistance
                 || math.abs(coord.ValueRO.Value.z - playerCoord.z) > WS.maxRegionDistance
                 || math.abs(coord.ValueRO.Value.y - playerCoord.y) > WS.yViewDistance)
+                    outsideDistance = true;
+            }
+            else
+            {
+                if (math.abs(coord.ValueRO.Value.y - playerCoord.y) > WS.yViewDistance)
+                {
+                    outsideDistance = true;
+                }
+                else
+                {
+                    float dx = coord.ValueRO.Value.x - playerCoord.x;
+                    float dz = coord.ValueRO.Value.z - playerCoord.z;
+                    float dy = (coord.ValueRO.Value.y - playerCoord.y) * WS.yRegionSize / WS.regionSize;
+                    float dist3D = math.sqrt(dx * dx + dz * dz + dy * dy);
+                    if (dist3D > WS.maxRegionDistance)
+                        outsideDistance = true;
+                }
+            }
+
+            // Check if the region is outside of the distance //
+            if (outsideDistance == true)
             {
                 state.EntityManager.SetComponentData<RegionLOD>(entity, new RegionLOD() { Level = LODLevel.TooFar });
                 state.EntityManager.SetComponentEnabled<RegionDirty>(entity, true);
