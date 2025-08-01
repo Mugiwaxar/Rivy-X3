@@ -17,7 +17,8 @@ public struct WorldSettings : IComponentData
     public int regionSize;
     public int yRegionSize;
     public int chunkSize;
-    public byte chunkInitListSize;
+    public byte maxRegionGenerationPerFrame;
+    public byte chunkGenerationMaxJob;
 
     public int maxRegionDistance;
     public int nearRegionDistance;
@@ -43,6 +44,7 @@ public struct DataSingleton : IComponentData
     public NativeParallelHashMap<int3, Entity> chunksMap;
     public NativeParallelHashMap<int3, Entity> regionsMap;
 
+    public NativeQueue<Entity> regionsToPopulateQueue;
     public NativeQueue<Entity> chunkToBuildQueue;
     public NativeList<ChunkData> chunkJobList;
 
@@ -76,6 +78,7 @@ public partial struct SingletonManager : ISystem
         {
             chunksMap = new NativeParallelHashMap<int3, Entity>(world.worldTotalSizeInChunk, Allocator.Persistent),
             regionsMap = new NativeParallelHashMap<int3, Entity>(world.worldTotalSizeInChunk, Allocator.Persistent),
+            regionsToPopulateQueue = new NativeQueue<Entity>(Allocator.Persistent),
             chunkToBuildQueue = new NativeQueue<Entity>(Allocator.Persistent),
             chunkJobList = new NativeList<ChunkData>(Allocator.Persistent),
             matID = world.MaterialID
@@ -130,7 +133,8 @@ public partial struct SingletonManager : ISystem
             regionSize = world.regionSize,
             yRegionSize = world.yRegionSize,
             chunkSize = world.chunkSize,
-            chunkInitListSize = world.chunkInitListSize,
+            maxRegionGenerationPerFrame = world.maxRegionGenerationPerFrame,
+            chunkGenerationMaxJob = world.chunkGenerationMaxJob,
 
             maxRegionDistance = world.maxRegionDistance,
             nearRegionDistance = world.nearRegionDistance,
@@ -152,31 +156,35 @@ public partial struct SingletonManager : ISystem
 
     }
 
-    public void DestroyVoxelChunkSingleton(DataSingleton vcs)
+    public void DestroyVoxelChunkSingleton(DataSingleton DS)
     {
 
         // Destroy the region map //
-        if (vcs.regionsMap.IsCreated)
-            vcs.regionsMap.Dispose();
+        if (DS.regionsMap.IsCreated)
+            DS.regionsMap.Dispose();
 
         // Destroy the chunks map //
-        if (vcs.chunksMap.IsCreated)
-            vcs.chunksMap.Dispose();
+        if (DS.chunksMap.IsCreated)
+            DS.chunksMap.Dispose();
 
         // Destroy the chunks to build queue //
-        if (vcs.chunkToBuildQueue.IsCreated)
-            vcs.chunkToBuildQueue.Dispose();
+        if (DS.chunkToBuildQueue.IsCreated)
+            DS.chunkToBuildQueue.Dispose();
+
+        // Destroy the region to populate queue //
+        if (DS.regionsToPopulateQueue.IsCreated)
+            DS.regionsToPopulateQueue.Dispose();
 
         // End all chunk build list //
-        if (vcs.chunkJobList.IsCreated)
+        if (DS.chunkJobList.IsCreated)
         {
-            for (int i = vcs.chunkJobList.Length - 1; i >= 0; i--)
+            for (int i = DS.chunkJobList.Length - 1; i >= 0; i--)
             {
-                ChunkData chunkData = vcs.chunkJobList[i];
+                ChunkData chunkData = DS.chunkJobList[i];
                 chunkData.job.Complete();
                 DisposeVCSAllNatives(chunkData);
             }
-            vcs.chunkJobList.Dispose();
+            DS.chunkJobList.Dispose();
         }
 
     }

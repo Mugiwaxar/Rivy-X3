@@ -109,7 +109,7 @@ public class ChunksManager : MonoBehaviour
 
     }
 
-    public static void GenerateAllChunksInRegion(ref SystemState state, int3 regionCoord, WorldSettings WS, DataSingleton DS, DynamicBuffer<RegionChunks> buffer, int chunksCount)
+    public static void GenerateAllChunksInRegion(ref SystemState state, int3 regionCoord, WorldSettings WS, DataSingleton DS, DynamicBuffer<RegionChunks> buffer)
     {
 
         // Create the blocks table //

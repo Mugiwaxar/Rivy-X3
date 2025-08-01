@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using UnityEngine;
 using static Atlas;
 
 namespace Assets.Scripts.Block
@@ -74,7 +70,12 @@ namespace Assets.Scripts.Block
                     p3 = new float3(x, y + this.sizeH, z + 1);
                     break;
                 default:
-                    return;
+                    p0 = new float3(0, 0, 0);
+                    p1 = new float3(0, 0, 0);
+                    p2 = new float3(0, 0, 0);
+                    p3 = new float3(0, 0, 0);
+                    Debug.LogWarning("Direction is null in ChunkSquareFaces.GetSquare()!");
+                    break;
             }
             verticesList.AddNoResize(p0 + offset);
             verticesList.AddNoResize(p1 + offset);

@@ -19,7 +19,7 @@ public struct RegionCoord : IComponentData { public int3 Value; }
 public struct RegionChunks : IBufferElementData { public Entity ChunkEntity; public int3 ChunkCoord; }
 public struct RegionLOD : IComponentData { public LODLevel Level; }
 public struct RegionNeedChunks : IComponentData, IEnableableComponent { }
-public struct RegionNeedRender : IComponentData, IEnableableComponent { }
+public struct RegionDirty : IComponentData, IEnableableComponent { }
 
 public struct RegionsInfo
 {
@@ -33,19 +33,8 @@ public struct RegionsInfo
 [UpdateAfter(typeof(InitChunks))]
 public partial struct PopulateRegionSystem : ISystem
 {
-
-    NativeQueue<Entity> regionsToPopulateQueue;
+    
     JobHandle populateRegionJob;
-
-    public void OnCreate(ref SystemState state)
-    {
-        this.regionsToPopulateQueue = new NativeQueue<Entity>(Allocator.Persistent);
-    }
-
-    public void OnDestroy(ref SystemState state)
-    {
-        this.regionsToPopulateQueue.Dispose();
-    }
 
     public void OnUpdate(ref SystemState state)
     {
@@ -62,30 +51,45 @@ public partial struct PopulateRegionSystem : ISystem
             SystemAPI.SetComponentEnabled<RegionNeedChunks>(regionEntity, false);
 
             // Add the entity to the queue //
-            this.regionsToPopulateQueue.Enqueue(regionEntity);
+            DS.regionsToPopulateQueue.Enqueue(regionEntity);
 
 
 
         }
 
         // Populate regions one by one //
-        if (this.regionsToPopulateQueue.Count > 0)
+        int regionGeneratedCount = 0;
+        if (DS.regionsToPopulateQueue.Count > 0)
         {
             
-            // Get the region //
-            Entity regionEntity = regionsToPopulateQueue.Dequeue();
-            
-            // Check if the region still exist //
-            if (state.EntityManager.Exists(regionEntity) == true)
+            // Check if the queue is full of remover regions //
+            for (int i = 0; i < 1000; i++)
             {
-                // Get the coord //
-                int3 coord = state.EntityManager.GetComponentData<RegionCoord>(regionEntity).Value;
+                // Get the region //
+                if (DS.regionsToPopulateQueue.Count <= 0) break;
+                Entity regionEntity = DS.regionsToPopulateQueue.Dequeue();
 
-                // Get the chunks buffer //
-                DynamicBuffer<RegionChunks> chunksBuffer = SystemAPI.GetBuffer<RegionChunks>(regionEntity);
+                // Check if the region still exist //
+                if (state.EntityManager.Exists(regionEntity) == true)
+                {
 
-                // Create all chunks //
-                ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer, WS.regionSizeInChunks);
+                    // Increase the counter //
+                    regionGeneratedCount++;
+
+                    // Get the coord //
+                    int3 coord = state.EntityManager.GetComponentData<RegionCoord>(regionEntity).Value;
+
+                    // Get the chunks buffer //
+                    DynamicBuffer<RegionChunks> chunksBuffer = SystemAPI.GetBuffer<RegionChunks>(regionEntity);
+
+                    // Create all chunks //
+                    ChunksManager.GenerateAllChunksInRegion(ref state, coord, WS, DS, chunksBuffer);
+
+                    // Stop the loop //
+                    if (regionGeneratedCount > WS.maxRegionGenerationPerFrame)
+                        break;
+
+                }
             }
 
         }
@@ -110,11 +114,11 @@ public partial struct UpdateRegionsSystem : ISystem
         NativeList<RegionsInfo> regionsToDestroy = new NativeList<RegionsInfo>(Allocator.Temp);
 
         // Get all region that need to update its render //
-        foreach ((var _, var lodLevelRef, var coord, Entity regionEntity) in SystemAPI.Query<RefRO<RegionNeedRender>, RefRO<RegionLOD>, RefRO<RegionCoord>>().WithDisabled<RegionNeedChunks>().WithEntityAccess())
+        foreach ((var _, var lodLevelRef, var coord, Entity regionEntity) in SystemAPI.Query<RefRO<RegionDirty>, RefRO<RegionLOD>, RefRO<RegionCoord>>().WithDisabled<RegionNeedChunks>().WithEntityAccess())
         {
 
             // Disable the need to render //
-            state.EntityManager.SetComponentEnabled<RegionNeedRender>(regionEntity, false);
+            state.EntityManager.SetComponentEnabled<RegionDirty>(regionEntity, false);
 
             // Remove too far region //
             if (lodLevelRef.ValueRO.Level == LODLevel.TooFar)
@@ -198,7 +202,7 @@ public partial struct RegionManagerSystem : ISystem
                         if (regionLOD.ValueRO.Level != level)
                         {
                             regionLOD.ValueRW.Level = level;
-                            state.EntityManager.SetComponentEnabled<RegionNeedRender>(regionEntity, true);
+                            //state.EntityManager.SetComponentEnabled<RegionNeedRender>(regionEntity, true);
                         }
                     }
                     else
@@ -219,7 +223,7 @@ public partial struct RegionManagerSystem : ISystem
                 || math.abs(coord.ValueRO.Value.y - playerCoord.y) > WS.yViewDistance)
             {
                 state.EntityManager.SetComponentData<RegionLOD>(entity, new RegionLOD() { Level = LODLevel.TooFar });
-                state.EntityManager.SetComponentEnabled<RegionNeedRender>(entity, true);
+                state.EntityManager.SetComponentEnabled<RegionDirty>(entity, true);
             }
 
         }
@@ -279,8 +283,8 @@ public static class VoxelRegion
         entityManager.AddComponentData(regionEntity, new RegionCoord { Value = regionCoord });
         entityManager.AddComponentData(regionEntity, new RegionLOD { Level = lodLevel });
         entityManager.AddComponent<RegionNeedChunks>(regionEntity);
-        entityManager.AddComponent<RegionNeedRender>(regionEntity);
-        entityManager.SetComponentEnabled<RegionNeedRender>(regionEntity, false);
+        entityManager.AddComponent<RegionDirty>(regionEntity);
+        entityManager.SetComponentEnabled<RegionDirty>(regionEntity, false);
         entityManager.AddBuffer<RegionChunks>(regionEntity);
         entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.chunkSize)));
 
@@ -369,7 +373,7 @@ public static class VoxelRegion
             
     }
 
-    public static Mesh GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCoord, WorldSettings WS)
+    public static void GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCoord, WorldSettings WS)
     {
 
         // Get atlas //
@@ -446,8 +450,7 @@ public static class VoxelRegion
         trianglesList.Dispose();
         uvsList.Dispose();
 
-        // Return the mesh //
-        return mesh;
+
 
     }
 

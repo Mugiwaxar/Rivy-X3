@@ -61,7 +61,7 @@ public partial struct BuildMesh : ISystem
         // Add jobs //
         int totalBlock = WS.chunkBlocksCount;
         int chunkSize = WS.chunkSize;
-        while (DS.chunkToBuildQueue.Count > 0 && DS.chunkJobList.Length < WS.chunkInitListSize)
+        while (DS.chunkToBuildQueue.Count > 0 && DS.chunkJobList.Length < WS.chunkGenerationMaxJob)
         {
 
             // Create the chunk data //
@@ -138,7 +138,7 @@ public partial struct BuildMesh : ISystem
             // Set the region to render //
             if (DS.regionsMap.TryGetValue(regionCoord, out Entity region) == true)
             {
-                state.EntityManager.SetComponentEnabled<RegionNeedRender>(region, true);
+                state.EntityManager.SetComponentEnabled<RegionDirty>(region, true);
             }
 
             // Dispose all natives //

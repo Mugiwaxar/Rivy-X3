@@ -41,7 +41,8 @@ public class VoxelWorld : MonoBehaviour
     public int regionSize = 4;
     public int yRegionSize = 16;
     public int chunkSize = 16;
-    public byte chunkInitListSize = 5;
+    public byte maxRegionGenerationPerFrame = 5;
+    public byte chunkGenerationMaxJob = 16;
 
     public bool doFloodFill = true;
     public bool doLinearFloodFill = true;

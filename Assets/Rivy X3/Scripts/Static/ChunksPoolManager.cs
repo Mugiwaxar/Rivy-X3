@@ -11,28 +11,45 @@ using UnityEngine;
 public partial struct ChunksPoolManagerSystem : ISystem
 {
 
-    // Volontary error do diseable the system //
+    private int chunkPoolDesiredCount;
+    EntityArchetype chunkArchetype;
+
     public void OnCreate(ref SystemState state)
     {
 
         // Get the world //
         VoxelWorld world = VoxelWorld._Instance;
 
+        // Get the Entity Manager //
+        EntityManager em = state.EntityManager;
+
+        // Set the max chunks //
+        this.chunkPoolDesiredCount = world.regionSizeInChunks * (world.maxRegionGenerationPerFrame * 2);
+
         // Create the chunk archetype //
-        EntityArchetype archetype = state.EntityManager.CreateArchetype(typeof(ChunkPosition), typeof(LocalTransform), typeof(ChunkNeedBlocks), typeof(ChunkNeedRender), typeof(BlockData), typeof(ChunkSquareFaces));
+        this.chunkArchetype = em.CreateArchetype(typeof(ChunkPosition), typeof(LocalTransform), typeof(ChunkNeedBlocks), typeof(ChunkNeedRender), typeof(BlockData), typeof(ChunkSquareFaces));
 
-        // Create all chunks //
-        int regions = ((world.maxRegionDistance*2)+1) * ((world.maxRegionDistance * 2) + 1) * (world.yViewDistance + 2);
-        int chunksToCreate = regions * world.regionSizeInChunks;
-        chunksToCreate = (int)(chunksToCreate * 1.2f);
-        NativeArray<Entity> chunkArray = new NativeArray<Entity>(chunksToCreate, Allocator.Temp);
-        state.EntityManager.CreateEntity(archetype, chunkArray);
+        //// Create all chunks //
+        //int regions = ((world.maxRegionDistance*2)+1) * ((world.maxRegionDistance * 2) + 1) * (world.yViewDistance + 2);
+        //int chunksToCreate = regions * world.regionSizeInChunks;
+        //chunksToCreate = (int)(chunksToCreate * 1.2f);
+        //NativeArray<Entity> chunkArray = new NativeArray<Entity>(chunksToCreate, Allocator.Temp);
+        //em.CreateEntity(chunkArchetype, chunkArray);
 
-        // Add all chunks to the Stack //
-        ChunksPoolManager.AddChunks(ref state, chunkArray);
+        //// Add all chunks to the Stack //
+        //ChunksPoolManager.AddChunks(ref em, chunkArray);
 
-        // Dispose the Array //
-        chunkArray.Dispose();
+        //// Dispose the Array //
+        //chunkArray.Dispose();
+
+    }
+
+    public void OnUpdate(ref SystemState state)
+    {
+
+        // Chunks pool regulation //
+        EntityManager em = state.EntityManager;
+        ChunksPoolManager.PoolRegulation(ref em, this.chunkPoolDesiredCount, this.chunkArchetype);
 
     }
 
@@ -45,13 +62,13 @@ public class ChunksPoolManager
     private static Stack<Entity> Pool = new Stack<Entity>();
     private static readonly object Locker = new();
 
-    public static void AddChunks(ref SystemState state, NativeArray<Entity> chunkArray)
+    public static void AddChunks(ref EntityManager em, NativeArray<Entity> chunkArray)
     {
         foreach (Entity entity in chunkArray)
         {
             Pool.Push(entity);
-            state.EntityManager.SetComponentEnabled<ChunkNeedBlocks>(entity, false);
-            state.EntityManager.SetComponentEnabled<ChunkNeedRender>(entity, false);
+            em.SetComponentEnabled<ChunkNeedBlocks>(entity, false);
+            em.SetComponentEnabled<ChunkNeedRender>(entity, false);
         }
     }
 
@@ -78,11 +95,33 @@ public class ChunksPoolManager
         }
     }
 
+    public static void PoolRegulation(ref EntityManager em, int count, EntityArchetype chunkArchetype)
+    {
+        if (Pool.Count > count)
+        {
+            for (int i = 0; i < Mathf.Min(30, Pool.Count - count); i++)
+            {
+                Entity chunk = Pool.Pop();
+                em.DestroyEntity(chunk);
+            }
+        }
+        else if (Pool.Count < count)
+        {
+            NativeArray<Entity> chunkArray = new NativeArray<Entity>(count - Pool.Count, Allocator.Temp);
+            em.CreateEntity(chunkArchetype, chunkArray);
+            ChunksPoolManager.AddChunks(ref em, chunkArray);
+            chunkArray.Dispose();
+        }
+    }
+
     public static void DisposeAll()
     {
-        EntityManager em = World.DefaultGameObjectInjectionWorld.EntityManager;
-        foreach (Entity entity in Pool)
-            em.DestroyEntity(entity);
+        if (World.DefaultGameObjectInjectionWorld != null && World.DefaultGameObjectInjectionWorld.EntityManager != null)
+        {
+            EntityManager em = World.DefaultGameObjectInjectionWorld.EntityManager;
+            foreach (Entity entity in Pool)
+                em.DestroyEntity(entity);
+        }
     }
 
     public static string GetStats()

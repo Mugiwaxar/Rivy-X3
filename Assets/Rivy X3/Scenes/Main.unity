@@ -422,7 +422,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 177638, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 22451668, guid: 0abab5bb77339e4428787a870eb31bd3, type: 3}
       propertyPath: m_Pivot.x
@@ -663,7 +663,7 @@ MonoBehaviour:
   atlasTexture: {fileID: 2800000, guid: 9b669b78c1cdef74aa45b8e3e5e5a166, type: 3}
   worldSizeInChunks: 50
   worldHeightInChunks: 10
-  maxRegionDistance: 3
+  maxRegionDistance: 5
   nearRegionDistance: 1
   playerContactRegionDistance: 1
   yViewDistance: 3
