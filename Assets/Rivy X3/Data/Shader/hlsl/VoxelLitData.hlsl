@@ -23,6 +23,8 @@
 
 //#define PROJECTED_SPACE_NDF_FILTERING
 
+float4 _AtlasCellSize;
+
 // Struct that gather UVMapping info of all layers + common calculation
 // This is use to abstract the mapping that can differ on layers
 struct LayerTexCoord
@@ -218,6 +220,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
     GetLayerTexCoord(input, layerTexCoord);
+
+    float2 _cellSize = _AtlasCellSize.xy;
+    float2 _localUV = input.texCoord0.xy;
+    float2 _atlasIndex = input.texCoord1.xy;
+    layerTexCoord.base.uv = _atlasIndex * _cellSize + frac(_localUV) * _cellSize;
+    layerTexCoord.base.dudx = ddx(_localUV) * _cellSize;
+    layerTexCoord.base.dudy = ddy(_localUV) * _cellSize;
 
 #if !defined(SHADER_STAGE_RAY_TRACING)
     float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord);
