@@ -9,6 +9,8 @@ Shader "RX3/VoxelShader"
         [MainColor] _BaseColor("BaseColor", Color) = (1,1,1,1)
         [MainTexture] _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
+        _AtlasCellSize("Atlas Cell Size", Vector) = (1,1,0,0)
+
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
         _MaskMap("MaskMap", 2D) = "white" {}
