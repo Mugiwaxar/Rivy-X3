@@ -10,7 +10,6 @@ using Unity.Transforms;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
-using static Atlas;
 using static EnumData;
 using static UnityEngine.EventSystems.EventTrigger;
 using static UnityEngine.Rendering.HighDefinition.ScalableSettingLevelParameter;
@@ -418,9 +417,6 @@ public static class VoxelRegion
     public static void GenerateMesh(ref EntityManager entityManager, Entity regionEntity, int3 regionCoord, WorldSettings WS)
     {
 
-        // Get atlas //
-        AtlasData atlas = VoxelWorld._Instance._Atlas;
-
         // Get the region buffer //
         DynamicBuffer<RegionChunks> chunksBuffer = entityManager.GetBuffer<RegionChunks>(regionEntity);
 
@@ -436,6 +432,7 @@ public static class VoxelRegion
         NativeList<float3> verticesList = new NativeList<float3>(totalFaces * 4, Allocator.Temp);
         NativeList<int> trianglesList = new NativeList<int>(totalFaces * 6, Allocator.Temp);
         NativeList<float2> uvsList = new NativeList<float2>(totalFaces * 4, Allocator.Temp);
+        NativeList<float2> uv2List = new NativeList<float2>(totalFaces * 4, Allocator.Temp);
 
         // Itinerate all chunks //
         foreach(RegionChunks chunk in chunksBuffer)
@@ -465,7 +462,7 @@ public static class VoxelRegion
                     int startIndex = verticesList.Length;
                     squareFace.GetSquare(ref verticesList, offset);
                     squareFace.GetTriangles(startIndex, ref trianglesList);
-                    squareFace.GetUVs(ref uvsList, atlas);
+                    squareFace.GetUVs(ref uvsList, ref uv2List);
                 }
             }
 
@@ -480,6 +477,7 @@ public static class VoxelRegion
         mesh.SetVertices(verticesList.AsArray());
         mesh.SetIndices(trianglesList.AsArray(), MeshTopology.Triangles, 0);
         mesh.SetUVs(0, uvsList.AsArray());
+        mesh.SetUVs(1, uv2List.AsArray());
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         mesh.UploadMeshData(false);
@@ -491,6 +489,7 @@ public static class VoxelRegion
         verticesList.Dispose();
         trianglesList.Dispose();
         uvsList.Dispose();
+        uv2List.Dispose();
 
 
 
