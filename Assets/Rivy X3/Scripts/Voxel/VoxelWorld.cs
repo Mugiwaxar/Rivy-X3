@@ -98,6 +98,10 @@ public class VoxelWorld : MonoBehaviour
         // Save the instance //
         _Instance = this;
 
+        // Send atlas cell size to shader
+        AtlasData atlasData = this._Atlas;
+        Shader.SetGlobalVector("_AtlasCellSize", new Vector4(atlasData.CellWidthUV, atlasData.CellHeightUV, 0f, 0f));
+
         // Create the chunks manager //
         if (this.ChunkSManager != null)
             GameObject.DestroyImmediate(this.ChunkSManager.gameObject);
