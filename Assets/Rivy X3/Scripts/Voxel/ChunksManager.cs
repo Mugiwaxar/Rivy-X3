@@ -118,7 +118,7 @@ public class ChunksManager : MonoBehaviour
         // Get the region position in blocks //
         int3 regionBasePos = new int3(
                 regionCoord.x * WS.regionSize * WS.chunkSize,
-                regionCoord.y * WS.yRegionSize * WS.chunkSize,
+                regionCoord.y * WS.yRegionSize * WS.yChunkSize,
                 regionCoord.z * WS.regionSize * WS.chunkSize);
 
         // Create the job //
@@ -126,6 +126,7 @@ public class ChunksManager : MonoBehaviour
         {
             blocks = regionBlocks,
             chunkSize = WS.chunkSize,
+            yChunkSize = WS.yChunkSize,
             regionRealPosition = regionBasePos
         }.Schedule(WS.regionBlocksCount, 64).Complete();
 

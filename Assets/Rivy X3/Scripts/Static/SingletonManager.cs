@@ -17,6 +17,7 @@ public struct WorldSettings : IComponentData
     public int regionSize;
     public int yRegionSize;
     public int chunkSize;
+    public int yChunkSize;
     public byte maxRegionGenerationPerFrame;
     public byte chunkGenerationMaxJob;
 
@@ -136,6 +137,7 @@ public partial struct SingletonManager : ISystem
             regionSize = world.regionSize,
             yRegionSize = world.yRegionSize,
             chunkSize = world.chunkSize,
+            yChunkSize = world.yChunkSize,
             maxRegionGenerationPerFrame = world.maxRegionGenerationPerFrame,
             chunkGenerationMaxJob = world.chunkGenerationMaxJob,
 

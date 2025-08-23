@@ -40,7 +40,7 @@ static public partial class ChunksGenerator
         entityManager.SetComponentData<ChunkPosition>(chunkEntity, new ChunkPosition { Value = new int3(position.x, position.y, position.z) });
 
         // Set the local transform //
-        float3 worldPos = position * WS.chunkSize;
+        float3 worldPos = new float3(position.x * WS.chunkSize, position.y * WS.yChunkSize, position.z * WS.chunkSize);
         entityManager.SetComponentData<LocalTransform>(chunkEntity, LocalTransform.FromPosition(worldPos));
 
         // Set all enableable Components //
@@ -69,14 +69,15 @@ static public partial class ChunksGenerator
 
         public NativeArray<BlockData> blocks;
         [ReadOnly] public int chunkSize;
+        [ReadOnly] public int yChunkSize;
         [ReadOnly] public int3 regionRealPosition;
 
         public void Execute(int index)
         {
 
             //int x = index % chunkSize;
-            int y = (index / chunkSize) % chunkSize;
-            //int z = index / (chunkSize * chunkSize);
+            int y = (index / chunkSize) % yChunkSize;
+            //int z = index / (chunkSize * yChunkSize);
             //int xRealPos = regionRealPosition.x + x;
             int yRealPos = regionRealPosition.y + y;
             //int zRealPos = regionRealPosition.z + z;
@@ -102,6 +103,7 @@ static public partial class ChunksGenerator
         [ReadOnly] public AtlasData atlas;
 
         int chunkSize;
+        int yChunkSize;
         int totalBlocks;
 
         public NativeList<int3> frontier;
@@ -130,6 +132,7 @@ static public partial class ChunksGenerator
 
             // Get the settings //
             this.chunkSize = WS.chunkSize;
+            this.yChunkSize = WS.yChunkSize;
             this.totalBlocks = WS.chunkBlocksCount;
 
             // Get all neighbors //
@@ -173,11 +176,11 @@ static public partial class ChunksGenerator
             // Fill frontier and render tables //
             for (int x = 0; x < this.chunkSize; x++)
             {
-                for (int y = 0; y < this.chunkSize; y++)
+                for (int y = 0; y < this.yChunkSize; y++)
                 {
                     for (int z = 0; z < this.chunkSize; z++)
                     {
-                        if ((x == 0 || x == this.chunkSize - 1 || y == 0 || y == this.chunkSize - 1 || z == 0 || z == this.chunkSize - 1))
+                        if ((x == 0 || x == this.chunkSize - 1 || y == 0 || y == this.yChunkSize - 1 || z == 0 || z == this.chunkSize - 1))
                         {
                             int idx = this.ToIndex(x, y, z);
                             this.floodVisited[idx] = 1;
@@ -228,14 +231,18 @@ static public partial class ChunksGenerator
 
                 int3 faceOrigin = this.GetFaceStart(dir);
 
-                for (int a = 0; a < this.chunkSize; a++)
+                int lenA = orthA.y != 0 ? this.yChunkSize : this.chunkSize;
+                int lenB = orthB.y != 0 ? this.yChunkSize : this.chunkSize;
+                int lenDir = dir.y != 0 ? this.yChunkSize : this.chunkSize;
+
+                for (int a = 0; a < lenA; a++)
                 {
-                    for (int b = 0; b < this.chunkSize; b++)
+                    for (int b = 0; b < lenB; b++)
                     {
                         int3 start = faceOrigin + a * orthA + b * orthB;
                         int3 pos = start;
 
-                        for (int i = 0; i < this.chunkSize; i++)
+                        for (int i = 0; i < lenDir; i++)
                         {
                             if (this.InBounds(pos) == false) break;
 
@@ -295,8 +302,8 @@ static public partial class ChunksGenerator
 
                 // Get the position //
                 int x = i % this.chunkSize;
-                int y = (i / this.chunkSize) % this.chunkSize;
-                int z = i / (this.chunkSize * this.chunkSize);
+                int y = (i / this.chunkSize) % this.yChunkSize;
+                int z = i / (this.chunkSize * this.yChunkSize);
 
                 // Generate quads for each visible face oriented toward the camera //
                 if ((blockRender.renderMask & (1 << 0)) != 0 &&
@@ -332,8 +339,8 @@ static public partial class ChunksGenerator
 
             // Get the position //
             int x = index % this.chunkSize;
-            int y = (index / this.chunkSize) % this.chunkSize;
-            int z = index / (this.chunkSize * this.chunkSize);
+            int y = (index / this.chunkSize) % this.yChunkSize;
+            int z = index / (this.chunkSize * this.yChunkSize);
 
             // Create the mask //
             byte faceMask = blockRender.renderMask;
@@ -759,27 +766,27 @@ static public partial class ChunksGenerator
 
         private bool InBounds(int3 p)
         {
-            return p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < chunkSize && p.y < chunkSize && p.z < chunkSize;
+            return p.x >= 0 && p.y >= 0 && p.z >= 0 && p.x < chunkSize && p.y < yChunkSize && p.z < chunkSize;
         }
 
         private int getBlockRenderIndex(int x, int y, int z)
         {
-            if (x < 0 || x >= this.chunkSize || y < 0 || y >= this.chunkSize || z < 0 || z >= this.chunkSize)
+            if (x < 0 || x >= this.chunkSize || y < 0 || y >= this.yChunkSize || z < 0 || z >= this.chunkSize)
                 return -1;
             else
                 return ToIndex(x, y, z);
         }
-        
+
         private int ToIndex(int x, int y, int z)
         {
-            return x + chunkSize * (y + chunkSize * z);
+            return x + chunkSize * (y + yChunkSize * z);
         }
 
         private int3 GetFaceStart(int3 dir)
         {
             return new int3(
                 dir.x < 0 ? chunkSize - 1 : 0,
-                dir.y < 0 ? chunkSize - 1 : 0,
+                dir.y < 0 ? yChunkSize - 1 : 0,
                 dir.z < 0 ? chunkSize - 1 : 0
             );
         }
@@ -820,9 +827,9 @@ static public partial class ChunksGenerator
             if (y < 0)
             {
                 if (this.WS.doChunkBorderOcclusion == false || this.bottomNeighbor.IsCreated == false || this.bottomNeighbor.Length != this.totalBlocks) return BlockData.Air;
-                return this.bottomNeighbor[ToIndex(x, this.chunkSize - 1, z)];
+                return this.bottomNeighbor[ToIndex(x, this.yChunkSize - 1, z)];
             }
-            if (y >= this.chunkSize)
+            if (y >= this.yChunkSize)
             {
                 if (this.WS.doChunkBorderOcclusion == false || this.topNeighbor.IsCreated == false || this.topNeighbor.Length != this.totalBlocks) return BlockData.Air;
                 return this.topNeighbor[ToIndex(x, 0, z)];
