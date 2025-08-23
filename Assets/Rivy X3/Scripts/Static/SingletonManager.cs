@@ -24,7 +24,6 @@ public struct WorldSettings : IComponentData
     public int maxRegionDistance;
     public int nearRegionDistance;
     public int playerContactRegionDistance;
-    public int yViewDistance;
 
     public int chunkBlocksCount;
     public int regionSizeInChunks;
@@ -144,7 +143,6 @@ public partial struct SingletonManager : ISystem
             maxRegionDistance = world.maxRegionDistance,
             nearRegionDistance = world.nearRegionDistance,
             playerContactRegionDistance = world.playerContactRegionDistance,
-            yViewDistance = world.yViewDistance,
 
             chunkBlocksCount = world.chunkBlocksCount,
             regionSizeInChunks = world.regionSizeInChunks,

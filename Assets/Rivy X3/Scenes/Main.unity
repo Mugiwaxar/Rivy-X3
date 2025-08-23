@@ -666,7 +666,6 @@ MonoBehaviour:
   maxRegionDistance: 8
   nearRegionDistance: 1
   playerContactRegionDistance: 1
-  yViewDistance: 4
   regionSize: 6
   yRegionSize: 4
   chunkSize: 16

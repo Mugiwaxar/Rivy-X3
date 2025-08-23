@@ -30,7 +30,7 @@ public partial struct ChunksPoolManagerSystem : ISystem
         this.chunkArchetype = em.CreateArchetype(typeof(ChunkPosition), typeof(LocalTransform), typeof(ChunkNeedBlocks), typeof(ChunkNeedRender), typeof(BlockData), typeof(ChunkSquareFaces));
 
         //// Create all chunks //
-        //int regions = ((world.maxRegionDistance*2)+1) * ((world.maxRegionDistance * 2) + 1) * (world.yViewDistance + 2);
+        //int regions = ((world.maxRegionDistance * 2) + 1) * ((world.maxRegionDistance * 2) + 1);
         //int chunksToCreate = regions * world.regionSizeInChunks;
         //chunksToCreate = (int)(chunksToCreate * 1.2f);
         //NativeArray<Entity> chunkArray = new NativeArray<Entity>(chunksToCreate, Allocator.Temp);

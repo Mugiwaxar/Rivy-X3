@@ -167,40 +167,38 @@ public partial struct RegionManagerSystem : ISystem
 
         // Get the player coord //
         int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.yChunkSize);
+        playerCoord.y = 0;
 
         // Create the nativeList //
         NativeList<RegionsInfo> regionsToCreate = new NativeList<RegionsInfo>(Allocator.Temp);
 
         // Check all regions around //
         for (int dx = -WS.maxRegionDistance; dx <= WS.maxRegionDistance; dx++)
-            for (int dy = -WS.yViewDistance; dy <= WS.yViewDistance; dy++)
-                for (int dz = -WS.maxRegionDistance; dz <= WS.maxRegionDistance; dz++)
+            for (int dz = -WS.maxRegionDistance; dz <= WS.maxRegionDistance; dz++)
+            {
+
+                // Get the region coord //
+                int3 regionCoord = playerCoord + new int3(dx, 0, dz);
+
+                // Get the distance //
+                float distance = 0;
+
+                // Cubic or spheric generation //
+                if (WS.sphericChunkGeneration == false)
                 {
-
-                    // Get the region coord //
-                    int3 regionCoord = playerCoord + new int3(dx, dy, dz);
-
-                    // Get the distance //
-                    float distance = 0;
-
-                    // Cubic or spheric generation //
-                    if (WS.sphericChunkGeneration == false)
-                    {
-                        int adx = math.abs(regionCoord.x - playerCoord.x);
-                        int ady = math.abs(regionCoord.y - playerCoord.y) * WS.yRegionSize / WS.regionSize;
-                        int adz = math.abs(regionCoord.z - playerCoord.z);
-                        distance = math.max(math.max(adx, ady), adz);
-                    }
-                    else
-                    {
-                        distance = math.sqrt(
-                            dx * dx +
-                            dz * dz +
-                            math.pow(dy * WS.yRegionSize / WS.regionSize, 2)
-                        );
-                        if (distance > WS.maxRegionDistance)
-                            continue;
-                    }
+                    int adx = math.abs(regionCoord.x - playerCoord.x);
+                    int adz = math.abs(regionCoord.z - playerCoord.z);
+                    distance = math.max(adx, adz);
+                }
+                else
+                {
+                    distance = math.sqrt(
+                        dx * dx +
+                        dz * dz
+                    );
+                    if (distance > WS.maxRegionDistance)
+                        continue;
+                }
 
 
                     // Get the wanted LOD //
@@ -240,25 +238,16 @@ public partial struct RegionManagerSystem : ISystem
             if (WS.sphericChunkGeneration == false)
             {
                 if (math.abs(coord.ValueRO.Value.x - playerCoord.x) > WS.maxRegionDistance
-                || math.abs(coord.ValueRO.Value.z - playerCoord.z) > WS.maxRegionDistance
-                || math.abs(coord.ValueRO.Value.y - playerCoord.y) > WS.yViewDistance)
+                || math.abs(coord.ValueRO.Value.z - playerCoord.z) > WS.maxRegionDistance)
                     outsideDistance = true;
             }
             else
             {
-                if (math.abs(coord.ValueRO.Value.y - playerCoord.y) > WS.yViewDistance)
-                {
+                float dx = coord.ValueRO.Value.x - playerCoord.x;
+                float dz = coord.ValueRO.Value.z - playerCoord.z;
+                float dist2D = math.sqrt(dx * dx + dz * dz);
+                if (dist2D > WS.maxRegionDistance)
                     outsideDistance = true;
-                }
-                else
-                {
-                    float dx = coord.ValueRO.Value.x - playerCoord.x;
-                    float dz = coord.ValueRO.Value.z - playerCoord.z;
-                    float dy = (coord.ValueRO.Value.y - playerCoord.y) * WS.yRegionSize / WS.regionSize;
-                    float dist3D = math.sqrt(dx * dx + dz * dz + dy * dy);
-                    if (dist3D > WS.maxRegionDistance)
-                        outsideDistance = true;
-                }
             }
 
             // Check if the region is outside of the distance //

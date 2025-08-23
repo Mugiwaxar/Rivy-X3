@@ -38,7 +38,6 @@ public class VoxelWorld : MonoBehaviour
     public int maxRegionDistance = 5;
     public int nearRegionDistance = 3;
     public int playerContactRegionDistance = 1;
-    public int yViewDistance = 2;
 
     public int regionSize = 4;
     public int yRegionSize = 16;
