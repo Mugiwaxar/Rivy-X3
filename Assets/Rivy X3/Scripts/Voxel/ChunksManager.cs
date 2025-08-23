@@ -118,7 +118,7 @@ public class ChunksManager : MonoBehaviour
         // Get the region position in blocks //
         int3 regionBasePos = new int3(
                 regionCoord.x * WS.regionSize * WS.chunkSize,
-                regionCoord.y * WS.yRegionSize * WS.yChunkSize,
+                regionCoord.y * WS.yChunkSize,
                 regionCoord.z * WS.regionSize * WS.chunkSize);
 
         // Create the job //
@@ -133,40 +133,41 @@ public class ChunksManager : MonoBehaviour
         // Set all Chunks //
         int i = 0;
         for (int cx = 0; cx < WS.regionSize; cx++)
-            for (int cy = 0; cy < WS.yRegionSize; cy++)
-                for (int cz = 0; cz < WS.regionSize; cz++)
+        {
+            for (int cz = 0; cz < WS.regionSize; cz++)
+            {
+
+                // Get the chunk coord //
+                int3 chunkCoord = new int3(
+                    regionCoord.x * WS.regionSize + cx,
+                    regionCoord.y,
+                    regionCoord.z * WS.regionSize + cz
+                );
+
+                // Check if a old chunk exist and destroy it //
+                if (DS.chunksMap.ContainsKey(chunkCoord) == true)
                 {
-
-                    // Get the chunk coord //
-                    int3 chunkCoord = new int3(
-                        regionCoord.x * WS.regionSize + cx,
-                        regionCoord.y * WS.yRegionSize + cy,
-                        regionCoord.z * WS.regionSize + cz
-                    );
-
-                    // Check if a old chunk exist and destroy it //
-                    if (DS.chunksMap.ContainsKey(chunkCoord) == true)
-                    {
-                        Entity entityToDestroy = DS.chunksMap[chunkCoord];
-                        DS.chunksMap.Remove(chunkCoord);
-                        ChunksPoolManager.ReleaseChunk(entityToDestroy);
-                    }
-
-                    // Generate the chunk //
-                    Entity chunkEntity = ChunksGenerator.CreateChunk(ref state, ref regionBlocks, i * WS.chunkBlocksCount, chunkCoord, WS);
-
-                    // Increase i //
-                    i++;
-
-                    // Check if the chunk is full air //
-                    if (chunkEntity == Entity.Null)
-                        continue;
-
-                    // Add the chunk to the map and the buffer //
-                    DS.chunksMap.Add(chunkCoord, chunkEntity);
-                    buffer.Add(new RegionChunks { ChunkEntity = chunkEntity, ChunkCoord = chunkCoord });
-
+                    Entity entityToDestroy = DS.chunksMap[chunkCoord];
+                    DS.chunksMap.Remove(chunkCoord);
+                    ChunksPoolManager.ReleaseChunk(entityToDestroy);
                 }
+
+                // Generate the chunk //
+                Entity chunkEntity = ChunksGenerator.CreateChunk(ref state, ref regionBlocks, i * WS.chunkBlocksCount, chunkCoord, WS);
+
+                // Increase i //
+                i++;
+
+                // Check if the chunk is full air //
+                if (chunkEntity == Entity.Null)
+                    continue;
+
+                // Add the chunk to the map and the buffer //
+                DS.chunksMap.Add(chunkCoord, chunkEntity);
+                buffer.Add(new RegionChunks { ChunkEntity = chunkEntity, ChunkCoord = chunkCoord });
+
+            }
+        }
 
         // Release the blocks table //
         NativesPoolManager<BlockData>.ReleaseArray(regionBlocks);

@@ -126,7 +126,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
                 DebugDrawRegionBounds(
                     pos,
                     VoxelWorld._Instance.regionSize * VoxelWorld._Instance.chunkSize,
-                    VoxelWorld._Instance.yRegionSize * VoxelWorld._Instance.yChunkSize,
+                    VoxelWorld._Instance.yChunkSize,
                     UnityEngine.Color.magenta);
             }
         }
@@ -176,16 +176,16 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
         Debug.DrawLine(corners[3], corners[7], color);
     }
 
-    static public void DebugDrawRegionBounds(int3 regionCoord, int regionSizeInBlocks, int yRegionSizeInBlocks, Color color)
+    static public void DebugDrawRegionBounds(int3 regionCoord, int regionSizeInBlocks, int yChunkSize, Color color)
     {
 
         Vector3 min = new Vector3(
             regionCoord.x * regionSizeInBlocks,
-            regionCoord.y * yRegionSizeInBlocks,
+            regionCoord.y * yChunkSize,
             regionCoord.z * regionSizeInBlocks);
         Vector3 max = min + new Vector3(
             regionSizeInBlocks,
-            yRegionSizeInBlocks,
+            yChunkSize,
             regionSizeInBlocks);
 
         Vector3[] corners = new Vector3[8];

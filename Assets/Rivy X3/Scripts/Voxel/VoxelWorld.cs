@@ -40,7 +40,6 @@ public class VoxelWorld : MonoBehaviour
     public int playerContactRegionDistance = 1;
 
     public int regionSize = 4;
-    public int yRegionSize = 16;
     public int chunkSize = 16;
     public int yChunkSize = 16;
     public byte maxRegionGenerationPerFrame = 5;
@@ -58,7 +57,7 @@ public class VoxelWorld : MonoBehaviour
 
     public int worldTotalSizeInChunk { get { return worldSizeInChunks * worldSizeInChunks * worldHeightInChunks; } }
     public int chunkBlocksCount { get { return this.chunkSize * this.chunkSize * this.yChunkSize; } }
-    public int regionSizeInChunks { get { return this.regionSize * this.regionSize * this.yRegionSize; } }
+    public int regionSizeInChunks { get { return this.regionSize * this.regionSize; } }
     public int regionBlocksCount { get { return this.chunkBlocksCount * this.regionSizeInChunks; } }
 
     [NonSerialized] public bool requestWorldInit = true;

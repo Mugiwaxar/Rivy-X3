@@ -140,7 +140,7 @@ public partial struct BuildMesh : ISystem
 
             // Get the region coord //
             int3 chunkPos = state.EntityManager.GetComponentData<ChunkPosition>(chunkData.chunk).Value;
-            int3 regionCoord = Utils.ChunkPosToRegionCoord(chunkPos, WS.regionSize, WS.yRegionSize);
+            int3 regionCoord = Utils.ChunkPosToRegionCoord(chunkPos, WS.regionSize);
 
             // Set the region to render //
             if (DS.regionsMap.TryGetValue(regionCoord, out Entity region) == true)

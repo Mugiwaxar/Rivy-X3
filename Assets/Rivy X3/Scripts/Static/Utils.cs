@@ -55,29 +55,29 @@ public static class Utils
 
     }
 
-    public static int3 ChunkPosToRegionCoord(int3 chunkPos, int regionSize, int yRegionSize)
+    public static int3 ChunkPosToRegionCoord(int3 chunkPos, int regionSize)
     {
         return new int3(
             (int)math.floor((float)chunkPos.x / regionSize),
-            (int)math.floor((float)chunkPos.y / yRegionSize),
+            chunkPos.y,
             (int)math.floor((float)chunkPos.z / regionSize)
         );
     }
 
-    public static int3 WorldPosToRegionCoord(float3 worldPos, int regionSizeInBlocks, int yRegionSizeInBlocks)
+    public static int3 WorldPosToRegionCoord(float3 worldPos, int regionSizeInBlocks, int yChunkSize)
     {
         return new int3(
             (int)math.floor(worldPos.x / regionSizeInBlocks),
-            (int)math.floor(worldPos.y / yRegionSizeInBlocks),
+            (int)math.floor(worldPos.y / yChunkSize),
             (int)math.floor(worldPos.z / regionSizeInBlocks)
         );
     }
 
-    public static float3 RegionCoordToWorldPos(float3 regionCoord, int regionSizeInBlocks, int yRegionSizeInBlocks)
+    public static float3 RegionCoordToWorldPos(float3 regionCoord, int regionSizeInBlocks, int yChunkSize)
     {
         return new float3(
             regionCoord.x * regionSizeInBlocks,
-            regionCoord.y * yRegionSizeInBlocks,
+            regionCoord.y * yChunkSize,
             regionCoord.z * regionSizeInBlocks
         );
     }

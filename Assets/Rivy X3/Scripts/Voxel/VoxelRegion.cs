@@ -166,7 +166,7 @@ public partial struct RegionManagerSystem : ISystem
         if (SystemAPI.TryGetSingleton<DataSingleton>(out DataSingleton DS) == false) return;
 
         // Get the player coord //
-        int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.yChunkSize);
+        int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize, WS.yChunkSize);
         playerCoord.y = 0;
 
         // Create the nativeList //
@@ -317,7 +317,7 @@ public static class VoxelRegion
         entityManager.AddComponent<RegionDirty>(regionEntity);
         entityManager.SetComponentEnabled<RegionDirty>(regionEntity, false);
         entityManager.AddBuffer<RegionChunks>(regionEntity);
-        entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.yChunkSize)));
+        entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yChunkSize)));
 
         // Add the render components //
         Mesh mesh = MeshesPoolManager.GetMesh();
@@ -335,7 +335,7 @@ public static class VoxelRegion
 
         float3 extents = new float3(
             WS.regionSize * halfChunkSize,
-            WS.yRegionSize * halfYChunkSize,
+            halfYChunkSize,
             WS.regionSize * halfChunkSize
         );
         float3 center = extents;
@@ -444,7 +444,7 @@ public static class VoxelRegion
                 // Calcule the offset //
                 int3 offset = new int3(
                     chunkPos.x * WS.chunkSize - regionCoord.x * WS.regionSize * WS.chunkSize,
-                    chunkPos.y * WS.yChunkSize - regionCoord.y * WS.yRegionSize * WS.yChunkSize,
+                    chunkPos.y * WS.yChunkSize - regionCoord.y * WS.yChunkSize,
                     chunkPos.z * WS.chunkSize - regionCoord.z * WS.regionSize * WS.chunkSize
                 );
 

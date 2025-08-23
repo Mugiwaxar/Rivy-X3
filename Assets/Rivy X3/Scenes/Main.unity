@@ -667,7 +667,6 @@ MonoBehaviour:
   nearRegionDistance: 1
   playerContactRegionDistance: 1
   regionSize: 6
-  yRegionSize: 4
   chunkSize: 16
   maxRegionGenerationPerFrame: 20
   chunkGenerationMaxJob: 100
