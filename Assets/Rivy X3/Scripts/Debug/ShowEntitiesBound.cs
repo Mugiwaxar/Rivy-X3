@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -82,7 +82,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
                     {
                         for (int z = 0; z < chunkSize; z++)
                         {
-                            int idx = Utils.PosToIndex(chunkSize, yChunkSize, x, y, z);
+                            int idx = Utils.PosToIndex(chunkSize,yChunkSize, x, y, z);
                             if (idx >= blocks.Length) continue;
                             BlockData block = blocks[idx];
                             if (!block.IsRenderable())
@@ -135,8 +135,13 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
 
     static public void DebugDrawChunkBounds(int3 chunkPos, int chunkSize, int yChunkSize, Color color)
     {
-        Vector3 min = new Vector3(chunkPos.x * chunkSize, chunkPos.y * yChunkSize, chunkPos.z * chunkSize);
-        Vector3 max = min + new Vector3(chunkSize, yChunkSize, chunkSize);
+        Vector3 min = new Vector3(chunkPos.x * chunkSize,
+                                  chunkPos.y * yChunkSize,
+                                  chunkPos.z * chunkSize);
+
+        Vector3 max = new Vector3(min.x + chunkSize,
+                                  min.y + yChunkSize,
+                                  min.z + chunkSize);
 
         Vector3[] corners = new Vector3[8];
 
