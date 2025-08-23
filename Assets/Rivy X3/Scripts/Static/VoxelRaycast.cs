@@ -31,6 +31,7 @@ public static class VoxelRaycast
         [ReadOnly] public NativeParallelHashMap<int3, Entity> ChunkMap;
         [ReadOnly] public BufferLookup<BlockData> BlocksLookup;
         [ReadOnly] public int ChunkSize;
+        [ReadOnly] public int YChunkSize;
 
         public void Execute(int index)
         {
@@ -68,7 +69,7 @@ public static class VoxelRaycast
 
                 int3 chunkPos = new int3(
                     (int)math.floor((float)pos.x / ChunkSize),
-                    (int)math.floor((float)pos.y / ChunkSize),
+                    (int)math.floor((float)pos.y / YChunkSize),
                     (int)math.floor((float)pos.z / ChunkSize)
                 );
 
@@ -132,13 +133,16 @@ public static class VoxelRaycast
 
         private bool IsSolid(int3 position, Entity chunk)
         {
-            int3 localPos = ((position % ChunkSize) + ChunkSize) % ChunkSize;
+            int3 localPos = new int3(
+                ((position.x % ChunkSize) + ChunkSize) % ChunkSize,
+                ((position.y % YChunkSize) + YChunkSize) % YChunkSize,
+                ((position.z % ChunkSize) + ChunkSize) % ChunkSize);
 
             if (!BlocksLookup.HasBuffer(chunk))
                 return false;
 
             DynamicBuffer<BlockData> buffer = BlocksLookup[chunk];
-            int idx = Utils.PosToIndex(ChunkSize, localPos.x, localPos.y, localPos.z);
+            int idx = Utils.PosToIndex(ChunkSize, YChunkSize, localPos.x, localPos.y, localPos.z);
             if ((uint)idx >= (uint)buffer.Length)
                 return false;
 

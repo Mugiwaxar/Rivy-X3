@@ -9,14 +9,14 @@ using static UnityEngine.Rendering.DebugUI;
 
 public static class Utils
 {
-    static public int PosToIndex(int chunkSize, int x, int y, int z)
+    static public int PosToIndex(int chunkSize, int yChunkSize, int x, int y, int z)
     {
-        return x + (chunkSize * (y + (chunkSize * z)));
+        return x + (chunkSize * (y + (yChunkSize * z)));
     }
 
-    static public int3 IndexToPos(int chunkSize, int index)
+    static public int3 IndexToPos(int chunkSize, int yChunkSize, int index)
     {
-        int layerSize = chunkSize * chunkSize;
+        int layerSize = chunkSize * yChunkSize;
 
         int z = index / layerSize;
         int rem = index - (z * layerSize);

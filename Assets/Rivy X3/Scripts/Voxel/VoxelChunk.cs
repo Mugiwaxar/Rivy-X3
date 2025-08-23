@@ -67,6 +67,7 @@ public partial struct BuildMesh : ISystem
         // Add jobs //
         int totalBlock = WS.chunkBlocksCount;
         int chunkSize = WS.chunkSize;
+        int yChunkSize = WS.yChunkSize;
         while (DS.chunkToBuildQueue.Count > 0 && DS.chunkJobList.Length < WS.chunkGenerationMaxJob)
         {
 
@@ -93,7 +94,7 @@ public partial struct BuildMesh : ISystem
                 WS = WS,
 
                 pos = state.EntityManager.GetComponentData<ChunkPosition>(chunkData.chunk).Value,
-                chunkCenter = new float3(chunkSize * 0.5f, chunkSize * 0.5f, chunkSize * 0.5f),
+                chunkCenter = new float3(chunkSize * 0.5f, yChunkSize * 0.5f, chunkSize * 0.5f),
                 cameraPosition = Camera.main.transform.position,
                 chunkMap = DS.chunksMap,
                 blocksLookup = SystemAPI.GetBufferLookup<BlockData>(true),

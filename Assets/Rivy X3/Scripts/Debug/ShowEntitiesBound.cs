@@ -68,6 +68,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
             using var positions = query.ToComponentDataArray<ChunkPosition>(Allocator.Temp);
 
             int chunkSize = VoxelWorld._Instance.chunkSize;
+            int yChunkSize = VoxelWorld._Instance.yChunkSize;
             Gizmos.color = new Color(1f, 0f, 0f, 0.5f);
 
             for (int i = 0; i < entities.Length; i++)
@@ -77,11 +78,11 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
 
                 for (int x = 0; x < chunkSize; x++)
                 {
-                    for (int y = 0; y < chunkSize; y++)
+                    for (int y = 0; y < yChunkSize; y++)
                     {
                         for (int z = 0; z < chunkSize; z++)
                         {
-                            int idx = Utils.PosToIndex(chunkSize, x, y, z);
+                            int idx = Utils.PosToIndex(chunkSize, yChunkSize, x, y, z);
                             if (idx >= blocks.Length) continue;
                             BlockData block = blocks[idx];
                             if (!block.IsRenderable())
@@ -89,7 +90,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
 
                             Vector3 worldPos = new Vector3(
                                 chunkPos.x * chunkSize + x + 0.5f,
-                                chunkPos.y * chunkSize + y + 0.5f,
+                                chunkPos.y * yChunkSize + y + 0.5f,
                                 chunkPos.z * chunkSize + z + 0.5f);
                             Gizmos.DrawWireCube(worldPos, Vector3.one);
                         }
@@ -112,7 +113,7 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
             for (int i = 0; i < chunksEntries.Length; i++)
             {
                 int3 pos = chunksEntries.Keys[i];
-                DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, UnityEngine.Color.blue);
+                DebugDrawChunkBounds(pos, VoxelWorld._Instance.chunkSize, VoxelWorld._Instance.yChunkSize, UnityEngine.Color.blue);
             }
         }
 
@@ -125,17 +126,17 @@ public class RenderBoundsGizmoDrawer : MonoBehaviour
                 DebugDrawRegionBounds(
                     pos,
                     VoxelWorld._Instance.regionSize * VoxelWorld._Instance.chunkSize,
-                    VoxelWorld._Instance.yRegionSize * VoxelWorld._Instance.chunkSize,
+                    VoxelWorld._Instance.yRegionSize * VoxelWorld._Instance.yChunkSize,
                     UnityEngine.Color.magenta);
             }
         }
 
     }
 
-    static public void DebugDrawChunkBounds(int3 chunkPos, int chunkSize, Color color)
+    static public void DebugDrawChunkBounds(int3 chunkPos, int chunkSize, int yChunkSize, Color color)
     {
-        Vector3 min = new Vector3(chunkPos.x, chunkPos.y, chunkPos.z) * chunkSize;
-        Vector3 max = min + Vector3.one * chunkSize;
+        Vector3 min = new Vector3(chunkPos.x * chunkSize, chunkPos.y * yChunkSize, chunkPos.z * chunkSize);
+        Vector3 max = min + new Vector3(chunkSize, yChunkSize, chunkSize);
 
         Vector3[] corners = new Vector3[8];
 

@@ -166,7 +166,7 @@ public partial struct RegionManagerSystem : ISystem
         if (SystemAPI.TryGetSingleton<DataSingleton>(out DataSingleton DS) == false) return;
 
         // Get the player coord //
-        int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.chunkSize);
+        int3 playerCoord = Utils.WorldPosToRegionCoord(Camera.main.transform.position, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.yChunkSize);
 
         // Create the nativeList //
         NativeList<RegionsInfo> regionsToCreate = new NativeList<RegionsInfo>(Allocator.Temp);
@@ -328,7 +328,7 @@ public static class VoxelRegion
         entityManager.AddComponent<RegionDirty>(regionEntity);
         entityManager.SetComponentEnabled<RegionDirty>(regionEntity, false);
         entityManager.AddBuffer<RegionChunks>(regionEntity);
-        entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.chunkSize)));
+        entityManager.AddComponentData(regionEntity, LocalTransform.FromPosition(Utils.RegionCoordToWorldPos(regionCoord, WS.regionSize * WS.chunkSize, WS.yRegionSize * WS.yChunkSize)));
 
         // Add the render components //
         Mesh mesh = MeshesPoolManager.GetMesh();
@@ -342,10 +342,11 @@ public static class VoxelRegion
 
         // Calcule the bounds //
         float halfChunkSize = WS.chunkSize * 0.5f;
+        float halfYChunkSize = WS.yChunkSize * 0.5f;
 
         float3 extents = new float3(
             WS.regionSize * halfChunkSize,
-            WS.yRegionSize * halfChunkSize,
+            WS.yRegionSize * halfYChunkSize,
             WS.regionSize * halfChunkSize
         );
         float3 center = extents;
@@ -452,10 +453,10 @@ public static class VoxelRegion
                 DynamicBuffer<ChunkSquareFaces> squaresBuffer = entityManager.GetBuffer<ChunkSquareFaces>(chunk.ChunkEntity);
 
                 // Calcule the offset //
-                int3 offset = (chunkPos * WS.chunkSize) - new int3(
-                    regionCoord.x * WS.regionSize * WS.chunkSize,
-                    regionCoord.y * WS.yRegionSize * WS.chunkSize,
-                    regionCoord.z * WS.regionSize * WS.chunkSize
+                int3 offset = new int3(
+                    chunkPos.x * WS.chunkSize - regionCoord.x * WS.regionSize * WS.chunkSize,
+                    chunkPos.y * WS.yChunkSize - regionCoord.y * WS.yRegionSize * WS.yChunkSize,
+                    chunkPos.z * WS.chunkSize - regionCoord.z * WS.regionSize * WS.chunkSize
                 );
 
                 // Generate the Lists //
